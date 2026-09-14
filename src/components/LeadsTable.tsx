@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { ArrowDown, ArrowUp, ArrowUpDown, MoreVertical, NotebookText, Trash2 } from "lucide-react";
 import { StarRating } from "@/components/StarRating";
 import type { Lead, LeadOrigin, LeadStatus } from "@/types/database";
@@ -86,34 +87,43 @@ function SortHeader({
   );
 }
 
-function RowMenu({ onDelete }: { onDelete: () => void }) {
-  const [open, setOpen] = useState(false);
+function RowMenu({
+  onDelete,
+  open,
+  onOpenChange,
+}: {
+  onDelete: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Opções do lead"
-        className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
-      >
-        <MoreVertical className="h-4 w-4" />
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-7 z-20 w-36 animate-fade-in rounded-lg border border-slate-200 bg-white p-1 shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
-            <button
-              onClick={() => {
-                setOpen(false);
-                onDelete();
-              }}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
-            >
-              <Trash2 className="h-3.5 w-3.5" /> Excluir lead
-            </button>
-          </div>
-        </>
-      )}
-    </div>
+    <DropdownMenu.Root open={open} onOpenChange={onOpenChange} modal={false}>
+      <DropdownMenu.Trigger asChild>
+        <button
+          aria-label="Opções do lead"
+          className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+        >
+          <MoreVertical className="h-4 w-4" />
+        </button>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          side="bottom"
+          align="end"
+          sideOffset={6}
+          collisionPadding={8}
+          avoidCollisions
+          className="z-50 w-36 animate-fade-in rounded-lg border border-slate-200 bg-white p-1 shadow-lg outline-none dark:border-zinc-800 dark:bg-zinc-900"
+        >
+          <DropdownMenu.Item
+            onSelect={() => onDelete()}
+            className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-red-600 outline-none transition-colors hover:bg-red-50 focus:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40 dark:focus:bg-red-950/40"
+          >
+            <Trash2 className="h-3.5 w-3.5" /> Excluir lead
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
 }
 
@@ -127,6 +137,8 @@ export function LeadsTable({
   onOpenNotes,
   onDeleteRequest,
 }: LeadsTableProps) {
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
   return (
     <div className={cx(CARD_SURFACE, "overflow-hidden p-0")}>
       <div className="scrollbar-thin overflow-x-auto">
@@ -242,7 +254,11 @@ export function LeadsTable({
                   </button>
                 </td>
                 <td className="px-3 py-1">
-                  <RowMenu onDelete={() => onDeleteRequest(lead)} />
+                  <RowMenu
+                    onDelete={() => onDeleteRequest(lead)}
+                    open={openMenuId === lead.id}
+                    onOpenChange={(next) => setOpenMenuId(next ? lead.id : null)}
+                  />
                 </td>
               </tr>
             ))}
