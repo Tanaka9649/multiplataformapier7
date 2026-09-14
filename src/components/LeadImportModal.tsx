@@ -287,7 +287,7 @@ export function LeadImportModal({ open, onClose, companyId, onImported }: LeadIm
             type="file"
             accept=".xlsx,.xls,.csv"
             onChange={handleFileChange}
-            className="block text-sm text-slate-600 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:text-zinc-400 dark:file:bg-brand-950/60 dark:file:text-brand-300 dark:hover:file:bg-brand-900/60"
+            className="block text-sm text-slate-600 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:text-zinc-400 dark:file:bg-brand-900 dark:file:text-brand-200 dark:hover:file:bg-brand-800"
           />
         </div>
       )}
