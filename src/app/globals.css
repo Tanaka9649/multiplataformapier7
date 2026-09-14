@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #f7f7f8;
+  color: #101828;
+}
+.dark body {
+  /* Grafite neutro, não preto absoluto nem navy — a base para o
+     restante da interface ganhar profundidade por diferença de
+     superfície (bg -> zinc-950; cards/painéis -> zinc-900). */
+  background-color: #101012;
+  color: #f4f4f5;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #d4d4d8;
+  border-radius: 9999px;
+}
+.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #3f3f46;
+}
+
+/* Respeita a preferência do sistema por menos animação: neutraliza
+   transições e animações globalmente sem precisar duplicar classes
+   motion-reduce em cada elemento. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
