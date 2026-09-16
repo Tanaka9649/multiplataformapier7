@@ -41,7 +41,7 @@ export default function LoginPage() {
         });
         if (signUpError) throw signUpError;
         setInfo(
-          "Conta criada. Se a confirmação por e-mail estiver ativa no projeto Supabase, verifique sua caixa de entrada antes de entrar."
+          "Conta criada. Se a confirmação por e-mail estiver ativa no projeto Supabase, verifique sua caixa de entrada antes de entrar. Depois de entrar, seu acesso ficará aguardando aprovação do administrador."
         );
         setMode("signin");
       }
