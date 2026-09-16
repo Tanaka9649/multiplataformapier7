@@ -16,9 +16,10 @@ import { LeadsControl } from "@/components/LeadsControl";
 import { EmptyState } from "@/components/EmptyState";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SectionHeader } from "@/components/SectionHeader";
+import { SocialMediaSection } from "@/components/social/SocialMediaSection";
 
 const LAST_COMPANY_KEY = "pier7:lastCompany";
-const VALID_TABS: DashboardTab[] = ["traffic", "calendar", "spreadsheets", "leads", "leadsControl"];
+const VALID_TABS: DashboardTab[] = ["traffic", "calendar", "spreadsheets", "leads", "leadsControl", "social"];
 
 export function DashboardShell({
   companies,
@@ -140,6 +141,7 @@ export function DashboardShell({
                   </section>
                 )}
                 {activeTab === "leadsControl" && <LeadsControl companyId={activeCompany.id} />}
+                {activeTab === "social" && <SocialMediaSection company={activeCompany} />}
               </div>
             )}
           </main>

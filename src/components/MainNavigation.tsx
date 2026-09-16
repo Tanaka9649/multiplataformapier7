@@ -1,9 +1,9 @@
 "use client";
 
-import { BarChart3, CalendarDays, FileSpreadsheet, Table2, UserCheck } from "lucide-react";
+import { BarChart3, CalendarDays, FileSpreadsheet, Instagram, Table2, UserCheck } from "lucide-react";
 import { cx } from "@/lib/utils";
 
-export type DashboardTab = "traffic" | "calendar" | "spreadsheets" | "leads" | "leadsControl";
+export type DashboardTab = "traffic" | "calendar" | "spreadsheets" | "leads" | "leadsControl" | "social";
 
 const TABS: { key: DashboardTab; label: string; icon: typeof BarChart3 }[] = [
   { key: "traffic", label: "Tráfego pago", icon: BarChart3 },
@@ -11,6 +11,7 @@ const TABS: { key: DashboardTab; label: string; icon: typeof BarChart3 }[] = [
   { key: "spreadsheets", label: "Planilhas", icon: FileSpreadsheet },
   { key: "leads", label: "Leads qualificados", icon: UserCheck },
   { key: "leadsControl", label: "Controle de Leads", icon: Table2 },
+  { key: "social", label: "Redes Sociais", icon: Instagram },
 ];
 
 interface MainNavigationProps {
