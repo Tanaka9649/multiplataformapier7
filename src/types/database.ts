@@ -136,6 +136,43 @@ export interface ResolvedMetric {
 export type Database = any;
 
 // ---------------------------------------------------------------------
+// Usuários, aprovação de acesso e permissões
+// ---------------------------------------------------------------------
+export type UserStatus = "pending" | "active" | "suspended" | "rejected";
+export type SystemRole = "owner" | "member";
+
+export interface Profile {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  role: "admin" | "member";
+  status: UserStatus;
+  system_role: SystemRole;
+  permission_profile_id: string | null;
+  approved_at: string | null;
+  approved_by: string | null;
+  suspended_at: string | null;
+  last_login_at: string | null;
+  created_at: string;
+}
+
+export interface PermissionProfile {
+  id: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+}
+
+export interface AdminAuditLog {
+  id: string;
+  actor_user_id: string | null;
+  action: string;
+  target_user_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------
 // Redes Sociais
 // ---------------------------------------------------------------------
 export type SocialNetwork = "instagram" | "tiktok" | "youtube";
