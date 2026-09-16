@@ -134,3 +134,68 @@ export interface ResolvedMetric {
 // (mantemos simples de propósito — o projeto não depende de geração
 // automática de tipos a partir do banco.)
 export type Database = any;
+
+// ---------------------------------------------------------------------
+// Redes Sociais
+// ---------------------------------------------------------------------
+export type SocialNetwork = "instagram" | "tiktok" | "youtube";
+export type SocialContentType = "reel" | "carrossel" | "post" | "video" | "short";
+
+export interface SocialMediaPeriod {
+  id: string;
+  company_id: string;
+  network: SocialNetwork;
+  year: number;
+  month: number;
+  followers: number | null;
+  new_followers: number | null;
+  reach: number | null;
+  impressions: number | null;
+  profile_views: number | null;
+  link_clicks: number | null;
+  likes: number | null;
+  comments: number | null;
+  shares: number | null;
+  saves: number | null;
+  watch_hours: number | null;
+  reels_count: number | null;
+  carousel_count: number | null;
+  static_posts_count: number | null;
+  stories_count: number | null;
+  videos_count: number | null;
+  shorts_count: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SocialStoryWeek {
+  id: string;
+  social_period_id: string;
+  week_number: number;
+  average_views: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SocialTopContent {
+  id: string;
+  company_id: string;
+  network: SocialNetwork;
+  year: number;
+  month: number;
+  content_type: SocialContentType;
+  title: string;
+  url: string;
+  thumbnail_url: string | null;
+  thumbnail_storage_path: string | null;
+  published_at: string | null;
+  views: number | null;
+  likes: number | null;
+  comments: number | null;
+  shares: number | null;
+  saves: number | null;
+  notes: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
