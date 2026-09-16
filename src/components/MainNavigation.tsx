@@ -17,16 +17,22 @@ const TABS: { key: DashboardTab; label: string; icon: typeof BarChart3 }[] = [
 interface MainNavigationProps {
   activeTab: DashboardTab;
   onSelect: (tab: DashboardTab) => void;
+  /** Abas que o usuário tem permissão de ver. Sem isso passado, mostra todas
+   * (usado apenas como fallback defensivo — o DashboardShell sempre calcula
+   * e passa a lista real com base nas permissões). */
+  visibleTabs?: DashboardTab[];
 }
 
-export function MainNavigation({ activeTab, onSelect }: MainNavigationProps) {
+export function MainNavigation({ activeTab, onSelect, visibleTabs }: MainNavigationProps) {
+  const tabs = visibleTabs ? TABS.filter((t) => visibleTabs.includes(t.key)) : TABS;
+
   return (
     <div className="border-b border-slate-200/70 bg-white dark:border-zinc-800/70 dark:bg-zinc-950">
       <nav
         className="scrollbar-thin mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 sm:px-6 lg:px-8"
         aria-label="Módulos"
       >
-        {TABS.map((tab) => {
+        {tabs.map((tab) => {
           const active = tab.key === activeTab;
           const Icon = tab.icon;
           return (
