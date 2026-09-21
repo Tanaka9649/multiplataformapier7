@@ -11,9 +11,8 @@ import { MetricsGrid } from "@/components/MetricsGrid";
 import { MarketingCalendar } from "@/components/MarketingCalendar";
 import { SpreadsheetUploader } from "@/components/SpreadsheetUploader";
 import { SpreadsheetGallery } from "@/components/SpreadsheetGallery";
-import { QualifiedLeadUploader } from "@/components/QualifiedLeadUploader";
-import { FileList } from "@/components/FileList";
 import { LeadsControl } from "@/components/LeadsControl";
+import { FollowUpSection } from "@/components/followup/FollowUpSection";
 import { EmptyState } from "@/components/EmptyState";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -22,13 +21,13 @@ import { PermissionsProvider, usePermissions } from "@/lib/usePermissions";
 import { SuspensionWatcher } from "@/components/SuspensionWatcher";
 
 const LAST_COMPANY_KEY = "pier7:lastCompany";
-const VALID_TABS: DashboardTab[] = ["traffic", "calendar", "spreadsheets", "leads", "leadsControl", "social"];
+const VALID_TABS: DashboardTab[] = ["traffic", "calendar", "spreadsheets", "leadsControl", "followUp", "social"];
 const TAB_MODULE: Record<DashboardTab, string> = {
   traffic: "traffic",
   calendar: "calendar",
   spreadsheets: "spreadsheets",
-  leads: "leads",
   leadsControl: "leads_control",
+  followUp: "follow_up",
   social: "social",
 };
 
@@ -89,7 +88,6 @@ function DashboardShellInner({
     paramTab && VALID_TABS.includes(paramTab) ? paramTab : "traffic"
   );
   const [spreadsheetRefresh, setSpreadsheetRefresh] = useState(0);
-  const [leadRefresh, setLeadRefresh] = useState(0);
 
   function updateUrl(slug: string, tab: DashboardTab) {
     const params = new URLSearchParams();
@@ -201,7 +199,7 @@ function DashboardShellInner({
                 {activeTab === "calendar" && <MarketingCalendar company={activeCompany} />}
                 {activeTab === "spreadsheets" && (
                   <section>
-                    <SectionHeader title="Planilhas" />
+                    <SectionHeader title="Documentos" />
                     <SpreadsheetUploader
                       companyId={activeCompany.id}
                       onUploaded={() => setSpreadsheetRefresh((n) => n + 1)}
@@ -209,17 +207,10 @@ function DashboardShellInner({
                     <SpreadsheetGallery companyId={activeCompany.id} refreshKey={spreadsheetRefresh} />
                   </section>
                 )}
-                {activeTab === "leads" && (
-                  <section>
-                    <SectionHeader title="Leads qualificados" />
-                    <QualifiedLeadUploader
-                      companyId={activeCompany.id}
-                      onUploaded={() => setLeadRefresh((n) => n + 1)}
-                    />
-                    <FileList companyId={activeCompany.id} refreshKey={leadRefresh} />
-                  </section>
-                )}
                 {activeTab === "leadsControl" && <LeadsControl companyId={activeCompany.id} />}
+                {activeTab === "followUp" && (
+                  <FollowUpSection companyId={activeCompany.id} companyName={activeCompany.name} />
+                )}
                 {activeTab === "social" && <SocialMediaSection company={activeCompany} />}
               </div>
             )}

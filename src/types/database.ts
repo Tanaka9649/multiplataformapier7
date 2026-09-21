@@ -102,7 +102,7 @@ export interface CompanyGoal {
 }
 
 export type LeadOrigin = "instagram" | "evento" | "prospeccao" | "trafego_pago";
-export type LeadStatus = "abandonou" | "conversando" | "reuniao_marcada" | "contrato_fechado";
+export type LeadStatus = "abandonou" | "conversando" | "follow_up" | "reuniao_marcada" | "contrato_fechado";
 
 export interface Lead {
   id: string;
@@ -118,6 +118,56 @@ export interface Lead {
   notes: string;
   created_at: string;
   updated_at: string;
+}
+
+// ---------------------------------------------------------------------
+// Follow-up — acompanhamento comercial sobre leads já cadastrados no
+// Controle de Leads. Nunca duplica o lead: sempre referencia lead_id.
+// ---------------------------------------------------------------------
+export type FollowUpActionType = "whatsapp" | "ligacao" | "mensagem" | "outro";
+
+export interface FollowUpRecord {
+  id: string;
+  lead_id: string;
+  company_id: string;
+  stage_number: number;
+  action_type: FollowUpActionType;
+  completed_at: string;
+  completed_time: string | null;
+  responsible: string;
+  notes: string;
+  requires_next_contact: boolean;
+  next_contact_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FollowUpScript {
+  id: string;
+  company_id: string;
+  service_interest: string | null;
+  stage_number: number;
+  content: string;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Uma linha por lead com o resumo do follow-up mais recente — espelha a
+ *  view `follow_up_lead_summary` (ver supabase/migrations/0015). */
+export interface FollowUpLeadSummary {
+  lead_id: string;
+  company_id: string;
+  name: string;
+  phone: string;
+  service_interest: string;
+  responsible: string;
+  status: LeadStatus;
+  current_stage: number | null;
+  last_contact_at: string | null;
+  next_contact_at: string | null;
+  last_notes: string | null;
 }
 
 /** Métrica já combinada (definição + config da empresa + valor atual),

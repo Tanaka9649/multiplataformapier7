@@ -78,12 +78,12 @@ export function SpreadsheetUploader({
       });
       if (insertError) throw insertError;
 
-      showToast("Planilha adicionada.", "success");
+      showToast("Documento adicionado.", "success");
       resetForm();
       onUploaded();
     } catch (err) {
       showToast(
-        err instanceof Error ? err.message : "Não foi possível enviar a planilha.",
+        err instanceof Error ? err.message : "Não foi possível enviar o documento.",
         "error"
       );
     } finally {
@@ -94,7 +94,7 @@ export function SpreadsheetUploader({
   return (
     <form onSubmit={handleSubmit} className={cx(CARD_SURFACE, "mb-6 p-4 sm:p-5")}>
       <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-zinc-100">
-        Adicionar print de planilha
+        Adicionar documento
       </h3>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -149,7 +149,7 @@ export function SpreadsheetUploader({
       </div>
 
       <button type="submit" disabled={uploading} className={`mt-4 ${BUTTON_PRIMARY}`}>
-        {uploading ? "Enviando..." : "Adicionar planilha"}
+        {uploading ? "Enviando..." : "Adicionar documento"}
       </button>
     </form>
   );

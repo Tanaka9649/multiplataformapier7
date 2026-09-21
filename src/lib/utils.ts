@@ -133,6 +133,7 @@ export const LEAD_ORIGIN_LABELS: Record<import("@/types/database").LeadOrigin, s
 export const LEAD_STATUS_LABELS: Record<import("@/types/database").LeadStatus, string> = {
   abandonou: "Abandonou",
   conversando: "Conversando",
+  follow_up: "Follow-up",
   reuniao_marcada: "Reunião marcada",
   contrato_fechado: "Contrato fechado",
 };
@@ -142,11 +143,58 @@ export const LEAD_STATUS_BADGE: Record<import("@/types/database").LeadStatus, st
     "bg-rose-50 text-rose-700 border-rose-200/70 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900/40",
   conversando:
     "bg-sky-50 text-sky-700 border-sky-200/70 dark:bg-sky-950/20 dark:text-sky-400 dark:border-sky-900/40",
+  follow_up:
+    "bg-indigo-50 text-indigo-700 border-indigo-200/70 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-900/40",
   reuniao_marcada:
     "bg-violet-50 text-violet-700 border-violet-200/70 dark:bg-violet-950/20 dark:text-violet-400 dark:border-violet-900/40",
   contrato_fechado:
     "bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/40",
 };
+
+export const FOLLOW_UP_ACTION_TYPE_LABELS: Record<import("@/types/database").FollowUpActionType, string> = {
+  whatsapp: "WhatsApp",
+  ligacao: "Ligação",
+  mensagem: "Mensagem",
+  outro: "Outro",
+};
+
+/** Badge discreto para "Atrasado" na aba Follow-up — âmbar suave, sem
+ *  vermelho agressivo, conforme pedido. */
+export const FOLLOW_UP_OVERDUE_BADGE =
+  "bg-amber-50 text-amber-700 border-amber-200/70 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/40";
+
+/** "1º Follow-up", "2º Follow-up"... — arquitetura não limitada a duas etapas. */
+export function stageLabel(stage: number): string {
+  return `${stage}º Follow-up`;
+}
+
+/** Escolhe o script mais específico para a etapa: empresa + etapa + serviço
+ *  de interesse do lead; se não houver, cai para o script padrão da
+ *  empresa + etapa (serviço nulo/vazio). */
+export function pickFollowUpScript(
+  scripts: import("@/types/database").FollowUpScript[],
+  stage: number,
+  serviceInterest: string
+): import("@/types/database").FollowUpScript | null {
+  const service = serviceInterest.trim().toLowerCase();
+  if (service) {
+    const specific = scripts.find(
+      (s) => s.active && s.stage_number === stage && (s.service_interest ?? "").trim().toLowerCase() === service
+    );
+    if (specific) return specific;
+  }
+  const fallback = scripts.find((s) => s.active && s.stage_number === stage && !s.service_interest);
+  return fallback ?? null;
+}
+
+export function formatDaysOverdue(nextContactAt: string): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const next = new Date(nextContactAt + "T00:00:00");
+  const diffDays = Math.round((today.getTime() - next.getTime()) / 86400000);
+  if (diffDays <= 0) return "Atrasado";
+  return `Atrasado há ${diffDays} ${diffDays === 1 ? "dia" : "dias"}`;
+}
 
 /** Formata dígitos como telefone brasileiro (fixo ou celular) sem
  *  bloquear outros formatos — usado só como máscara visual ao digitar. */

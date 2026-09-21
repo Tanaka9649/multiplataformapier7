@@ -1,16 +1,16 @@
 "use client";
 
-import { BarChart3, CalendarDays, FileSpreadsheet, Instagram, Table2, UserCheck } from "lucide-react";
+import { BarChart3, CalendarDays, FileText, Instagram, PhoneCall, Table2 } from "lucide-react";
 import { cx } from "@/lib/utils";
 
-export type DashboardTab = "traffic" | "calendar" | "spreadsheets" | "leads" | "leadsControl" | "social";
+export type DashboardTab = "traffic" | "calendar" | "spreadsheets" | "leadsControl" | "followUp" | "social";
 
 const TABS: { key: DashboardTab; label: string; icon: typeof BarChart3 }[] = [
   { key: "traffic", label: "Tráfego pago", icon: BarChart3 },
   { key: "calendar", label: "Calendário", icon: CalendarDays },
-  { key: "spreadsheets", label: "Planilhas", icon: FileSpreadsheet },
-  { key: "leads", label: "Leads qualificados", icon: UserCheck },
+  { key: "spreadsheets", label: "Documentos", icon: FileText },
   { key: "leadsControl", label: "Controle de Leads", icon: Table2 },
+  { key: "followUp", label: "Follow-up", icon: PhoneCall },
   { key: "social", label: "Redes Sociais", icon: Instagram },
 ];
 

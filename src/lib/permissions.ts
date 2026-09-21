@@ -29,7 +29,9 @@ export type ActionKey =
   | "manage_goals"
   | "edit_observations"
   | "edit_content"
-  | "delete_content";
+  | "delete_content"
+  | "register"
+  | "configure_scripts";
 
 export interface ModuleAction {
   key: ActionKey;
@@ -88,6 +90,9 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     ],
   },
   {
+    // A aba "Leads qualificados" foi removida da navegação (todas as
+    // empresas), mas a tabela/RLS continuam existindo — mantemos o módulo
+    // aqui para não deixar permissões já concedidas órfãs.
     key: "leads",
     label: "Leads qualificados",
     implemented: true,
@@ -109,6 +114,18 @@ export const PERMISSION_MODULES: PermissionModule[] = [
       { key: "delete", label: "Excluir" },
       { key: "import", label: "Importar" },
       { key: "export", label: "Exportar" },
+    ],
+  },
+  {
+    key: "follow_up",
+    label: "Follow-up",
+    implemented: true,
+    actions: [
+      { key: "view", label: "Visualizar" },
+      { key: "register", label: "Registrar follow-up" },
+      { key: "edit", label: "Editar registro" },
+      { key: "delete", label: "Excluir registro" },
+      { key: "configure_scripts", label: "Configurar scripts" },
     ],
   },
   {

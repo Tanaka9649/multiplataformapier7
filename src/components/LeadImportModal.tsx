@@ -118,6 +118,9 @@ function normalizeOrigin(raw: unknown): { value: LeadOrigin; matched: boolean } 
 function normalizeStatus(raw: unknown): { value: LeadStatus; matched: boolean } {
   const n = normalize(String(raw ?? ""));
   if (!n) return { value: "conversando", matched: false };
+  // Reconhece "Follow-up", "Follow up", "follow-up", "follow_up" (normalize()
+  // já remove espaços/hífen/underscore e acentos, então todos caem em "followup").
+  if (n.includes("followup")) return { value: "follow_up", matched: true };
   if (n.includes("abandon") || n.includes("perdid") || n.includes("desist"))
     return { value: "abandonou", matched: true };
   if (n.includes("reuniao") || n.includes("agendad") || n.includes("marcad"))

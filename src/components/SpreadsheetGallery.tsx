@@ -52,7 +52,7 @@ export function SpreadsheetGallery({
       setItems(withUrls);
     } catch (err) {
       showToast(
-        err instanceof Error ? err.message : "Não foi possível carregar as planilhas.",
+        err instanceof Error ? err.message : "Não foi possível carregar os documentos.",
         "error"
       );
     } finally {
@@ -75,13 +75,13 @@ export function SpreadsheetGallery({
         .delete()
         .eq("id", toDelete.id);
       if (error) throw error;
-      showToast("Planilha excluída.", "success");
+      showToast("Documento excluído.", "success");
       setToDelete(null);
       setViewing(null);
       load();
     } catch (err) {
       showToast(
-        err instanceof Error ? err.message : "Não foi possível excluir a planilha.",
+        err instanceof Error ? err.message : "Não foi possível excluir o documento.",
         "error"
       );
     } finally {
@@ -100,7 +100,7 @@ export function SpreadsheetGallery({
   }
 
   if (items.length === 0) {
-    return <EmptyState message="Nenhuma planilha adicionada ainda." />;
+    return <EmptyState message="Nenhum documento adicionado ainda." />;
   }
 
   return (
@@ -121,7 +121,7 @@ export function SpreadsheetGallery({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={item.signedUrl}
-                  alt={item.description ?? "Planilha"}
+                  alt={item.description ?? "Documento"}
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                 />
               )}
@@ -143,7 +143,7 @@ export function SpreadsheetGallery({
       <Modal
         open={!!viewing}
         onClose={() => setViewing(null)}
-        title="Planilha"
+        title="Documento"
         size="lg"
         footer={
           viewing && (
@@ -157,7 +157,7 @@ export function SpreadsheetGallery({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={viewing.signedUrl}
-            alt="Planilha em tamanho grande"
+            alt="Documento em tamanho grande"
             className="w-full rounded-lg border border-slate-200 object-contain dark:border-zinc-800"
           />
         )}
@@ -175,8 +175,8 @@ export function SpreadsheetGallery({
 
       <ConfirmDialog
         open={!!toDelete}
-        title="Excluir planilha"
-        message="Tem certeza que deseja excluir esta planilha? Essa ação não pode ser desfeita."
+        title="Excluir documento"
+        message="Tem certeza que deseja excluir este documento? Essa ação não pode ser desfeita."
         confirmLabel="Excluir"
         loading={deleting}
         onConfirm={handleDelete}

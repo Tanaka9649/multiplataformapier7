@@ -143,12 +143,16 @@ export function LeadsTable({
     <div className={cx(CARD_SURFACE, "overflow-hidden p-0")}>
       <div className="scrollbar-thin overflow-x-auto">
         <table className="w-full min-w-[1180px] border-collapse text-sm">
-          <thead className="bg-slate-50/70 dark:bg-zinc-950/40">
+          <thead className="bg-slate-50 dark:bg-zinc-950">
             <tr className="border-b border-slate-100 dark:border-zinc-800/70">
-              <th className="sticky left-0 z-10 bg-slate-50/70 px-3 py-2.5 text-left dark:bg-zinc-950/40">
+              {/* Colunas sticky usam background 100% opaco (sem /alpha): com
+                  scroll horizontal, uma cor translúcida deixa a coluna rolada
+                  por baixo "vazar" visualmente através da sticky — essa era a
+                  causa do bug de sobreposição no hover (ver LeadsControl). */}
+              <th className="sticky left-0 z-10 bg-slate-50 px-3 py-2.5 text-left dark:bg-zinc-950">
                 <SortHeader label="Data" active={sortKey === "entry_date"} dir={sortDir} onClick={() => onSort("entry_date")} />
               </th>
-              <th className="sticky left-[92px] z-10 min-w-[160px] bg-slate-50/70 px-3 py-2.5 text-left shadow-[2px_0_0_rgba(0,0,0,0.03)] dark:bg-zinc-950/40">
+              <th className="sticky left-[92px] z-10 min-w-[160px] bg-slate-50 px-3 py-2.5 text-left shadow-[2px_0_0_rgba(0,0,0,0.03)] dark:bg-zinc-950">
                 <SortHeader label="Nome" active={sortKey === "name"} dir={sortDir} onClick={() => onSort("name")} />
               </th>
               <th className="px-3 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-zinc-500">
@@ -183,7 +187,7 @@ export function LeadsTable({
           <tbody className={cx("divide-y divide-slate-100 transition-opacity duration-200 dark:divide-zinc-800/70", loading && "opacity-50")}>
             {leads.map((lead) => (
               <tr key={lead.id} className="group hover:bg-slate-50/60 dark:hover:bg-zinc-800/30">
-                <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-3 py-1 group-hover:bg-slate-50/60 dark:bg-zinc-900 dark:group-hover:bg-zinc-800/30">
+                <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-3 py-1 group-hover:bg-slate-50 dark:bg-zinc-900 dark:group-hover:bg-zinc-800">
                   <input
                     type="date"
                     value={lead.entry_date}
@@ -191,7 +195,7 @@ export function LeadsTable({
                     className="rounded-md border border-transparent bg-transparent px-1.5 py-1.5 text-sm text-slate-700 outline-none transition-colors hover:border-slate-200 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:text-zinc-300 dark:hover:border-zinc-700 dark:focus:ring-brand-900/40"
                   />
                 </td>
-                <td className="sticky left-[92px] z-10 min-w-[160px] bg-white px-3 py-1 shadow-[2px_0_0_rgba(0,0,0,0.03)] group-hover:bg-slate-50/60 dark:bg-zinc-900 dark:group-hover:bg-zinc-800/30">
+                <td className="sticky left-[92px] z-10 min-w-[160px] bg-white px-3 py-1 shadow-[2px_0_0_rgba(0,0,0,0.03)] group-hover:bg-slate-50 dark:bg-zinc-900 dark:group-hover:bg-zinc-800">
                   <TextCell value={lead.name} onCommit={(v) => onFieldChange(lead.id, "name", v)} placeholder="Nome" />
                 </td>
                 <td className="px-3 py-1">
