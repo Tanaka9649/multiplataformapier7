@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { Check, Copy, Pencil, Printer, Trash2 } from "lucide-react";
+import { StatusBadge, type StatusBadgeVariant } from "@/components/StatusBadge";
 import { Modal } from "@/components/Modal";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useToast } from "@/components/Toast";
 import { createClient } from "@/lib/supabase/client";
 import type { FollowUpActionType, FollowUpLeadSummary, FollowUpOutcome, FollowUpRecord, FollowUpResult, FollowUpScript, FollowUpStageSchedule } from "@/types/database";
-import { FOLLOW_UP_RESULT_LABELS, formatFollowUpMoment, formatRelativeDeadline } from "@/lib/followUp";
+import { FOLLOW_UP_RESULT_LABELS, formatFollowUpMoment, formatRelativeDeadline, getDeadlineBadgeVariant } from "@/lib/followUp";
 import {
   BUTTON_PRIMARY,
   BUTTON_DANGER,
@@ -27,6 +28,19 @@ import {
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function scheduleStatusVariant(schedule: FollowUpStageSchedule): StatusBadgeVariant {
+  if (schedule.status === "pending") return getDeadlineBadgeVariant(schedule.deadline_at);
+  if (schedule.status === "completed") return "success";
+  return "neutral";
+}
+
+function scheduleStatusLabel(schedule: FollowUpStageSchedule) {
+  if (schedule.status === "pending") return "Agendado";
+  if (schedule.status === "completed") return "Realizado";
+  if (schedule.status === "skipped") return "Pulado";
+  return "Cancelado";
 }
 
 interface FollowUpLeadPanelProps {
@@ -446,9 +460,9 @@ export function FollowUpLeadPanel({
               <div className="grid gap-2 sm:grid-cols-2">
                 {schedules.map((schedule) => (
                   <div key={schedule.id} className="rounded-lg border border-slate-200 px-3 py-2 text-xs dark:border-zinc-800">
-                    <div className="flex items-center justify-between gap-2"><span className="font-semibold text-slate-700 dark:text-zinc-200">{stageLabel(schedule.stage_number)}</span><span className={cx("rounded-full px-2 py-0.5 font-medium", schedule.status === "pending" ? "bg-brand-50 text-brand-700 dark:bg-brand-950/30 dark:text-brand-300" : schedule.status === "completed" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300" : "bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400")}>{schedule.status === "pending" ? "Agendado" : schedule.status === "completed" ? "Concluído" : schedule.status === "skipped" ? "Pulado" : "Cancelado"}</span></div>
+                    <div className="flex items-center justify-between gap-2"><span className="font-semibold text-slate-700 dark:text-zinc-200">{stageLabel(schedule.stage_number)}</span><StatusBadge variant={scheduleStatusVariant(schedule)}>{scheduleStatusLabel(schedule)}</StatusBadge></div>
                     <p className="mt-1 text-slate-500 dark:text-zinc-400">{formatFollowUpMoment(schedule.window_start_at)} → {formatFollowUpMoment(schedule.deadline_at)}</p>
-                    {schedule.status === "pending" && <div className="mt-1 flex items-center justify-between gap-2"><p className="font-medium text-brand-700 dark:text-brand-300">{formatRelativeDeadline(schedule.deadline_at)}</p>{canRegister && <button type="button" onClick={() => beginReschedule(schedule)} className={BUTTON_GHOST}>Adiar</button>}</div>}
+                    {schedule.status === "pending" && <div className="mt-1 flex items-center justify-between gap-2"><StatusBadge variant={getDeadlineBadgeVariant(schedule.deadline_at)}>{formatRelativeDeadline(schedule.deadline_at)}</StatusBadge>{canRegister && <button type="button" onClick={() => beginReschedule(schedule)} className={BUTTON_GHOST}>Adiar</button>}</div>}
                   </div>
                 ))}
               </div>

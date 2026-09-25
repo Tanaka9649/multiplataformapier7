@@ -1,4 +1,5 @@
 import type { FollowUpResult } from "@/types/database";
+import type { StatusBadgeVariant } from "@/components/StatusBadge";
 
 export const FOLLOW_UP_RESULT_LABELS: Record<FollowUpResult, string> = {
   no_answer: "Não respondeu",
@@ -38,4 +39,13 @@ export function formatRelativeDeadline(iso: string | null) {
   const minutes = absoluteMinutes % 60;
   const parts = [days ? `${days}d` : "", hours ? `${hours}h` : "", !days && minutes ? `${minutes}min` : ""].filter(Boolean);
   return overdue ? `Atrasado há ${parts.join(" ")}` : `Vence em ${parts.join(" ")}`;
+}
+
+/** Classifica somente a apresentação do prazo; não altera a cadência nem o cálculo exibido. */
+export function getDeadlineBadgeVariant(iso: string | null): StatusBadgeVariant {
+  if (!iso || isWeekend()) return "neutral";
+  const remainingMs = new Date(iso).getTime() - Date.now();
+  if (remainingMs < 0) return "danger";
+  if (remainingMs <= 2 * 60 * 60 * 1000) return "warning";
+  return "normal";
 }

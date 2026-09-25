@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Bell, CheckCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { StatusBadge } from "@/components/StatusBadge";
 import { createClient } from "@/lib/supabase/client";
 import type { FollowUpNotification } from "@/types/database";
-import { formatFollowUpMoment, formatRelativeDeadline } from "@/lib/followUp";
+import { formatFollowUpMoment, formatRelativeDeadline, getDeadlineBadgeVariant } from "@/lib/followUp";
 import { cx } from "@/lib/utils";
 
 export function FollowUpNotificationCenter() {
@@ -75,7 +76,7 @@ export function FollowUpNotificationCenter() {
           <div className="max-h-[420px] overflow-y-auto">
             {notifications.length === 0 ? <p className="px-4 py-8 text-center text-sm text-slate-400 dark:text-zinc-500">Nenhum alerta nas próximas 2 horas.</p> : notifications.map((notification) => (
               <button key={notification.schedule_id} type="button" onClick={() => openLead(notification)} className={cx("block w-full border-b border-slate-100 px-4 py-3 text-left hover:bg-slate-50 dark:border-zinc-800 dark:hover:bg-zinc-800/60", !notification.read_at && "bg-brand-50/50 dark:bg-brand-950/20")}>
-                <div className="flex items-start justify-between gap-3"><span className="truncate text-sm font-semibold text-slate-800 dark:text-zinc-100">{notification.lead_name}</span><span className={cx("shrink-0 text-[11px] font-semibold", notification.urgency === "overdue" ? "text-amber-600 dark:text-amber-400" : "text-brand-700 dark:text-brand-300")}>{formatRelativeDeadline(notification.deadline_at)}</span></div>
+                <div className="flex items-start justify-between gap-3"><span className="truncate text-sm font-semibold text-slate-800 dark:text-zinc-100">{notification.lead_name}</span><StatusBadge variant={getDeadlineBadgeVariant(notification.deadline_at)} className="shrink-0 text-[11px]">{formatRelativeDeadline(notification.deadline_at)}</StatusBadge></div>
                 <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">{notification.company_name} · {notification.stage_number}º follow-up</p>
                 <p className="mt-0.5 text-[11px] text-slate-400 dark:text-zinc-500">Prazo: {formatFollowUpMoment(notification.deadline_at)}</p>
               </button>

@@ -7,7 +7,7 @@ import type { UserStatus } from "@/types/database";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { CreateAccessModal } from "@/components/admin/CreateAccessModal";
 import { EmptyState } from "@/components/EmptyState";
-import { BUTTON_PRIMARY, CARD_SURFACE, INPUT_BASE, cx } from "@/lib/utils";
+import { BUTTON_PRIMARY, CARD_SURFACE, INPUT_BASE, SELECTED_PILL, UNSELECTED_PILL, cx } from "@/lib/utils";
 
 interface ProfileRow {
   id: string;
@@ -126,8 +126,8 @@ export function UsersPageClient({
               className={cx(
                 "relative rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-150",
                 filter === f.key
-                  ? "bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                  : "bg-white text-slate-500 hover:text-slate-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
+                  ? SELECTED_PILL
+                  : UNSELECTED_PILL
               )}
             >
               {f.label}

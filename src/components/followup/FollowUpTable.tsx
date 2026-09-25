@@ -1,10 +1,10 @@
 "use client";
 
 import { NotebookText, PhoneCall } from "lucide-react";
+import { StatusBadge } from "@/components/StatusBadge";
 import type { FollowUpLeadSummary } from "@/types/database";
 import {
   CARD_SURFACE,
-  FOLLOW_UP_OVERDUE_BADGE,
   LEAD_STATUS_BADGE,
   LEAD_STATUS_LABELS,
   cx,
@@ -12,7 +12,7 @@ import {
   formatDaysOverdue,
   stageLabel,
 } from "@/lib/utils";
-import { formatFollowUpMoment, formatRelativeDeadline, isWeekend } from "@/lib/followUp";
+import { formatFollowUpMoment, formatRelativeDeadline, getDeadlineBadgeVariant, isWeekend } from "@/lib/followUp";
 
 function isOverdue(nextContactAt: string | null) {
   if (!nextContactAt) return false;
@@ -96,9 +96,9 @@ export function FollowUpTable({ rows, loading, companyName, canRegister, onSelec
                       <div className="flex flex-col gap-0.5">
                         <span className="text-slate-600 dark:text-zinc-400">{formatDatePtBR(row.next_contact_at)}</span>
                         {overdue && (
-                          <span className={cx("w-fit rounded-full border px-1.5 py-0.5 text-[10px] font-medium", FOLLOW_UP_OVERDUE_BADGE)}>
+                          <StatusBadge variant="danger" className="px-1.5 text-[10px]">
                             {formatDaysOverdue(row.next_contact_at)}
-                          </span>
+                          </StatusBadge>
                         )}
                       </div>
                     ) : (
@@ -109,7 +109,15 @@ export function FollowUpTable({ rows, loading, companyName, canRegister, onSelec
                     {row.window_start_at && row.deadline_at ? `${formatFollowUpMoment(row.window_start_at)} → ${formatFollowUpMoment(row.deadline_at)}` : "—"}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2">
-                    {row.deadline_at ? <span className={cx("rounded-full border px-2 py-0.5 text-xs font-medium", formatRelativeDeadline(row.deadline_at).startsWith("Atrasado") ? FOLLOW_UP_OVERDUE_BADGE : "border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-900/50 dark:bg-brand-950/20 dark:text-brand-300")}>{formatRelativeDeadline(row.deadline_at)}</span> : row.cycle_status === "completed" ? <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300">Concluído</span> : "—"}
+                    {row.cycle_status === "completed" ? (
+                      <StatusBadge variant="success">Realizado</StatusBadge>
+                    ) : row.deadline_at ? (
+                      <StatusBadge variant={getDeadlineBadgeVariant(row.deadline_at)}>
+                        {formatRelativeDeadline(row.deadline_at)}
+                      </StatusBadge>
+                    ) : (
+                      "—"
+                    )}
                   </td>
                   <td className="max-w-[200px] px-3 py-2">
                     <div className="flex items-center gap-1.5 truncate text-slate-500 dark:text-zinc-400" title={row.last_notes ?? ""}>
@@ -119,14 +127,9 @@ export function FollowUpTable({ rows, loading, companyName, canRegister, onSelec
                   </td>
                   <td className="max-w-[160px] px-3 py-2">
                     {row.outcome ? (
-                      <span className={cx(
-                        "rounded-full border px-2 py-0.5 text-xs font-medium",
-                        row.outcome === "success"
-                          ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300"
-                          : "border-slate-200 bg-slate-50 text-slate-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
-                      )}>
+                      <StatusBadge variant={row.outcome === "success" ? "success" : "neutral"}>
                         {row.outcome === "success" ? "Sucesso" : "Sem retorno"}
-                      </span>
+                      </StatusBadge>
                     ) : (
                       <span className="text-slate-300 dark:text-zinc-600">—</span>
                     )}

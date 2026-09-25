@@ -127,13 +127,13 @@ export const LABEL_BASE = "mb-1 block text-sm font-medium text-slate-700 dark:te
  * O fundo escuro é deliberadamente opaco para que o selecionado não pareça
  * branco ou desabilitado no tema grafite. */
 export const SELECTED_CONTROL =
-  "border-brand-500 bg-brand-50 text-brand-800 shadow-sm dark:border-brand-500 dark:bg-brand-700 dark:text-white dark:shadow-none";
+  "border-brand-300 bg-brand-50 text-brand-800 shadow-sm dark:border-sky-800/60 dark:bg-sky-950/55 dark:text-sky-100 dark:shadow-none";
 
 export const UNSELECTED_CONTROL =
   "border-slate-300 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200";
 
 export const SELECTED_PILL =
-  "bg-brand-700 text-white ring-1 ring-inset ring-brand-700 dark:bg-brand-600 dark:text-white dark:ring-brand-500";
+  "bg-brand-700 text-white ring-1 ring-inset ring-brand-700 dark:bg-sky-950/55 dark:text-sky-100 dark:ring-sky-800/60";
 
 export const UNSELECTED_PILL =
   "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100";
@@ -172,11 +172,6 @@ export const FOLLOW_UP_ACTION_TYPE_LABELS: Record<import("@/types/database").Fol
   mensagem: "Mensagem",
   outro: "Outro",
 };
-
-/** Badge discreto para "Atrasado" na aba Follow-up — âmbar suave, sem
- *  vermelho agressivo, conforme pedido. */
-export const FOLLOW_UP_OVERDUE_BADGE =
-  "bg-amber-50 text-amber-700 border-amber-200/70 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/40";
 
 /** "1º Follow-up", "2º Follow-up"... — arquitetura não limitada a duas etapas. */
 export function stageLabel(stage: number): string {
