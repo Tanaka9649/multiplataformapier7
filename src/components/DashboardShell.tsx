@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { LogOut, ShieldCheck } from "lucide-react";
 import type { Company, Profile } from "@/types/database";
@@ -59,7 +59,6 @@ function DashboardShellInner({
   userEmail: string | null;
   profile: Profile;
 }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { can, loading: permissionsLoading, isOwner } = usePermissions();
 
@@ -95,7 +94,11 @@ function DashboardShellInner({
     const params = new URLSearchParams();
     params.set("company", slug);
     params.set("tab", tab);
-    router.replace(`/dashboard?${params.toString()}`, { scroll: false });
+    // Empresa e aba são estado local do Dashboard. Uma navegação do App
+    // Router aqui refazia auth/perfil/empresas no servidor sem necessidade.
+    // A History API mantém a URL compartilhável e integra com useSearchParams,
+    // sem nova requisição RSC ou remount dos providers.
+    window.history.replaceState(null, "", `/dashboard?${params.toString()}`);
   }
 
   useEffect(() => {

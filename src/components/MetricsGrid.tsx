@@ -25,20 +25,25 @@ export function MetricsGrid({ company }: { company: Company }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data: configRows, error: configError } = await supabase
-        .from("company_metric_config")
-        .select(
-          "metric_key, visible, label_override, sort_order, metric_definitions(label, format, sort_order)"
-        )
-        .eq("company_id", company.id)
-        .eq("visible", true);
+      const [configResult, valuesResult] = await Promise.all([
+        supabase
+          .from("company_metric_config")
+          .select(
+            "metric_key, visible, label_override, sort_order, metric_definitions(label, format, sort_order)"
+          )
+          .eq("company_id", company.id)
+          .eq("visible", true),
+        supabase
+          .from("metric_values")
+          .select("metric_key, value")
+          .eq("company_id", company.id),
+      ]);
+
+      const { data: configRows, error: configError } = configResult;
 
       if (configError) throw configError;
 
-      const { data: valueRows, error: valueError } = await supabase
-        .from("metric_values")
-        .select("metric_key, value")
-        .eq("company_id", company.id);
+      const { data: valueRows, error: valueError } = valuesResult;
 
       if (valueError) throw valueError;
 
