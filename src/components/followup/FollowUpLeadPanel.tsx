@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Check, Copy, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, Copy, Pencil, Trash2 } from "lucide-react";
 import { Modal } from "@/components/Modal";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useToast } from "@/components/Toast";
 import { createClient } from "@/lib/supabase/client";
-import type { FollowUpActionType, FollowUpLeadSummary, FollowUpRecord, FollowUpScript } from "@/types/database";
+import type { FollowUpActionType, FollowUpLeadSummary, FollowUpOutcome, FollowUpRecord, FollowUpScript } from "@/types/database";
 import {
   BUTTON_PRIMARY,
+  BUTTON_DANGER,
   BUTTON_SECONDARY,
   FOLLOW_UP_ACTION_TYPE_LABELS,
   INPUT_BASE,
@@ -33,7 +34,9 @@ interface FollowUpLeadPanelProps {
   lead: FollowUpLeadSummary | null;
   scripts: FollowUpScript[];
   canRegister: boolean;
+  canEdit: boolean;
   canDelete: boolean;
+  maxStage: number;
   onChanged: () => void;
 }
 
@@ -44,7 +47,9 @@ export function FollowUpLeadPanel({
   lead,
   scripts,
   canRegister,
+  canEdit,
   canDelete,
+  maxStage,
   onChanged,
 }: FollowUpLeadPanelProps) {
   const supabase = createClient();
@@ -56,11 +61,7 @@ export function FollowUpLeadPanel({
   const [copied, setCopied] = useState(false);
   const [toDelete, setToDelete] = useState<FollowUpRecord | null>(null);
   const [deleting, setDeleting] = useState(false);
-
-  const suggestedStage = useMemo(() => {
-    const max = records.reduce((acc, r) => Math.max(acc, r.stage_number), 0);
-    return max + 1;
-  }, [records]);
+  const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
 
   const [stage, setStage] = useState(1);
   const [completedAt, setCompletedAt] = useState(todayISO());
@@ -70,6 +71,8 @@ export function FollowUpLeadPanel({
   const [notes, setNotes] = useState("");
   const [requiresNext, setRequiresNext] = useState(true);
   const [nextContactAt, setNextContactAt] = useState("");
+  const [closeOutcome, setCloseOutcome] = useState<FollowUpOutcome | null>(null);
+  const [closing, setClosing] = useState(false);
 
   async function loadRecords(leadId: string) {
     setLoadingRecords(true);
@@ -100,17 +103,17 @@ export function FollowUpLeadPanel({
       setRequiresNext(true);
       setNextContactAt("");
       setCopied(false);
+      setCloseOutcome(null);
+      setEditingRecordId(null);
+      setStage(lead.current_stage && lead.current_stage <= maxStage ? lead.current_stage : 1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, lead?.lead_id]);
 
-  useEffect(() => {
-    setStage(suggestedStage);
-  }, [suggestedStage]);
-
   if (!lead) return null;
 
   const script = pickFollowUpScript(scripts, stage, lead.service_interest);
+  const active = lead.status === "follow_up" && lead.cycle_status !== "completed";
 
   async function handleCopyScript() {
     if (!script) return;
@@ -131,7 +134,7 @@ export function FollowUpLeadPanel({
     }
     setSaving(true);
     try {
-      const { error: insertError } = await supabase.from("follow_up_records").insert({
+      const payload = {
         lead_id: lead.lead_id,
         company_id: companyId,
         stage_number: stage,
@@ -142,8 +145,11 @@ export function FollowUpLeadPanel({
         notes,
         requires_next_contact: requiresNext,
         next_contact_at: requiresNext ? nextContactAt : null,
-      });
-      if (insertError) throw insertError;
+      };
+      const { error: writeError } = editingRecordId
+        ? await supabase.from("follow_up_records").update(payload).eq("id", editingRecordId)
+        : await supabase.from("follow_up_records").insert(payload);
+      if (writeError) throw writeError;
 
       // Item 23: alterações de Responsável feitas no Follow-up refletem no
       // Controle de Leads (mesma fonte de dados, nunca duplicada).
@@ -155,7 +161,8 @@ export function FollowUpLeadPanel({
         if (updateError) throw updateError;
       }
 
-      showToast("Follow-up registrado.", "success");
+      showToast(editingRecordId ? "Registro atualizado." : "Follow-up registrado.", "success");
+      setEditingRecordId(null);
       setNotes("");
       setCompletedTime("");
       await loadRecords(lead.lead_id);
@@ -184,6 +191,41 @@ export function FollowUpLeadPanel({
     }
   }
 
+  function startEditing(record: FollowUpRecord) {
+    setEditingRecordId(record.id);
+    setStage(record.stage_number);
+    setCompletedAt(record.completed_at);
+    setCompletedTime(record.completed_time?.slice(0, 5) ?? "");
+    setActionType(record.action_type);
+    setResponsible(record.responsible);
+    setNotes(record.notes);
+    setRequiresNext(record.requires_next_contact);
+    setNextContactAt(record.next_contact_at ?? "");
+  }
+
+  async function handleClose() {
+    if (!closeOutcome || !lead) return;
+    setClosing(true);
+    try {
+      const { error } = await supabase.rpc("close_follow_up_cycle", {
+        p_lead_id: lead.lead_id,
+        p_outcome: closeOutcome,
+      });
+      if (error) throw error;
+      showToast(
+        closeOutcome === "success" ? "Follow-up encerrado com reunião marcada." : "Follow-up encerrado sem retorno.",
+        "success"
+      );
+      setCloseOutcome(null);
+      onChanged();
+      onClose();
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Não foi possível encerrar o follow-up.", "error");
+    } finally {
+      setClosing(false);
+    }
+  }
+
   return (
     <Modal open={open} onClose={onClose} title={lead.name} size="lg">
       <div className="space-y-5">
@@ -194,6 +236,17 @@ export function FollowUpLeadPanel({
             {LEAD_STATUS_LABELS[lead.status]}
           </span>
         </div>
+
+        {lead.outcome && (
+          <div className={cx(
+            "rounded-xl border px-4 py-3 text-sm font-medium",
+            lead.outcome === "success"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300"
+              : "border-slate-200 bg-slate-50 text-slate-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+          )}>
+            Resultado do ciclo: {lead.outcome === "success" ? "Sucesso — Reunião marcada" : "Sem retorno — Processo encerrado"}
+          </div>
+        )}
 
         {script && (
           <div className="rounded-xl border border-brand-200/70 bg-brand-50/60 p-3.5 dark:border-brand-900/40 dark:bg-brand-950/20">
@@ -215,19 +268,26 @@ export function FollowUpLeadPanel({
           </div>
         )}
 
-        {canRegister && (
+        {(canRegister || !!editingRecordId) && active && (
           <div className="rounded-xl border border-slate-200/70 p-4 dark:border-zinc-800/70">
-            <p className="mb-3 text-sm font-semibold text-slate-800 dark:text-zinc-100">Registrar follow-up</p>
+            <p className="mb-3 text-sm font-semibold text-slate-800 dark:text-zinc-100">
+              {editingRecordId ? "Editar registro" : "Registrar follow-up"}
+            </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className={LABEL_BASE}>Etapa</label>
                 <select value={stage} onChange={(e) => setStage(Number(e.target.value))} className={INPUT_BASE}>
-                  {Array.from({ length: Math.max(suggestedStage, stage) + 4 }, (_, i) => i + 1).map((n) => (
+                  {Array.from({ length: maxStage }, (_, i) => i + 1).map((n) => (
                     <option key={n} value={n}>
                       {stageLabel(n)}
                     </option>
                   ))}
                 </select>
+                {stage === maxStage && (
+                  <p className="mt-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                    Esta é a última etapa configurada.
+                  </p>
+                )}
               </div>
               <div>
                 <label className={LABEL_BASE}>Tipo de ação</label>
@@ -311,9 +371,31 @@ export function FollowUpLeadPanel({
                 </div>
               )}
             </div>
-            <div className="mt-4 flex justify-end">
+            <div className="mt-4 flex justify-end gap-2">
+              {editingRecordId && (
+                <button onClick={() => setEditingRecordId(null)} disabled={saving} className={BUTTON_SECONDARY}>
+                  Cancelar edição
+                </button>
+              )}
               <button onClick={handleRegister} disabled={saving} className={BUTTON_PRIMARY}>
-                {saving ? "Salvando..." : "Registrar follow-up"}
+                {saving ? "Salvando..." : editingRecordId ? "Salvar alterações" : "Registrar follow-up"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {canEdit && active && (
+          <div className="rounded-xl border border-slate-200/70 p-4 dark:border-zinc-800/70">
+            <p className="text-sm font-semibold text-slate-800 dark:text-zinc-100">Encerrar follow-up</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
+              O histórico será preservado e o lead sairá da lista ativa.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button onClick={() => setCloseOutcome("success")} className={BUTTON_PRIMARY}>
+                Sucesso — Reunião marcada
+              </button>
+              <button onClick={() => setCloseOutcome("no_response")} className={BUTTON_DANGER}>
+                Sem retorno — Encerrar
               </button>
             </div>
           </div>
@@ -347,15 +429,18 @@ export function FollowUpLeadPanel({
                         </p>
                       )}
                     </div>
-                    {canDelete && (
-                      <button
-                        onClick={() => setToDelete(r)}
-                        aria-label="Excluir registro"
-                        className="shrink-0 rounded-md p-1 text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500 dark:text-zinc-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
+                    <div className="flex shrink-0 items-center gap-1">
+                      {canEdit && active && (
+                        <button onClick={() => startEditing(r)} aria-label="Editar registro" className="rounded-md p-1 text-slate-300 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button onClick={() => setToDelete(r)} aria-label="Excluir registro" className="rounded-md p-1 text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500 dark:text-zinc-600 dark:hover:bg-red-950/40 dark:hover:text-red-400">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </li>
               ))}
@@ -372,6 +457,19 @@ export function FollowUpLeadPanel({
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setToDelete(null)}
+      />
+      <ConfirmDialog
+        open={!!closeOutcome}
+        title="Confirmar encerramento"
+        message={
+          closeOutcome === "success"
+            ? "O ciclo será encerrado como Sucesso e a situação do lead mudará para Reunião marcada."
+            : "O ciclo será encerrado como Sem retorno e a situação do lead mudará para Abandonou."
+        }
+        confirmLabel="Confirmar encerramento"
+        loading={closing}
+        onConfirm={handleClose}
+        onCancel={() => setCloseOutcome(null)}
       />
     </Modal>
   );

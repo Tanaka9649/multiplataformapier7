@@ -24,16 +24,20 @@ interface LeadsTableProps {
   onFieldChange: (leadId: string, field: keyof Lead, value: string | number) => void;
   onOpenNotes: (lead: Lead) => void;
   onDeleteRequest: (lead: Lead) => void;
+  canEdit: boolean;
+  canDelete: boolean;
 }
 
 function TextCell({
   value,
   onCommit,
   placeholder,
+  disabled = false,
 }: {
   value: string;
   onCommit: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 }) {
   const [local, setLocal] = useState(value);
   useEffect(() => setLocal(value), [value]);
@@ -42,6 +46,7 @@ function TextCell({
       type="text"
       value={local}
       placeholder={placeholder}
+      disabled={disabled}
       onChange={(e) => setLocal(e.target.value)}
       onBlur={() => {
         if (local !== value) onCommit(local);
@@ -136,6 +141,8 @@ export function LeadsTable({
   onFieldChange,
   onOpenNotes,
   onDeleteRequest,
+  canEdit,
+  canDelete,
 }: LeadsTableProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
@@ -191,26 +198,29 @@ export function LeadsTable({
                   <input
                     type="date"
                     value={lead.entry_date}
+                    disabled={!canEdit}
                     onChange={(e) => onFieldChange(lead.id, "entry_date", e.target.value)}
                     className="rounded-md border border-transparent bg-transparent px-1.5 py-1.5 text-sm text-slate-700 outline-none transition-colors hover:border-slate-200 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:text-zinc-300 dark:hover:border-zinc-700 dark:focus:ring-brand-900/40"
                   />
                 </td>
                 <td className="sticky left-[92px] z-10 min-w-[160px] bg-white px-3 py-1 shadow-[2px_0_0_rgba(0,0,0,0.03)] group-hover:bg-slate-50 dark:bg-zinc-900 dark:group-hover:bg-zinc-800">
-                  <TextCell value={lead.name} onCommit={(v) => onFieldChange(lead.id, "name", v)} placeholder="Nome" />
+                  <TextCell value={lead.name} onCommit={(v) => onFieldChange(lead.id, "name", v)} placeholder="Nome" disabled={!canEdit} />
                 </td>
                 <td className="px-3 py-1">
-                  <TextCell value={lead.phone} onCommit={(v) => onFieldChange(lead.id, "phone", v)} placeholder="Telefone" />
+                  <TextCell value={lead.phone} onCommit={(v) => onFieldChange(lead.id, "phone", v)} placeholder="Telefone" disabled={!canEdit} />
                 </td>
                 <td className="px-3 py-1">
                   <TextCell
                     value={lead.service_interest}
                     onCommit={(v) => onFieldChange(lead.id, "service_interest", v)}
                     placeholder="Serviço"
+                    disabled={!canEdit}
                   />
                 </td>
                 <td className="px-3 py-1">
                   <select
                     value={lead.origin}
+                    disabled={!canEdit}
                     onChange={(e) => onFieldChange(lead.id, "origin", e.target.value as LeadOrigin)}
                     className="rounded-md border border-transparent bg-transparent px-1.5 py-1.5 text-sm text-slate-700 outline-none transition-colors hover:border-slate-200 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:text-zinc-300 dark:hover:border-zinc-700 dark:focus:ring-brand-900/40"
                   >
@@ -226,14 +236,16 @@ export function LeadsTable({
                     value={lead.responsible}
                     onCommit={(v) => onFieldChange(lead.id, "responsible", v)}
                     placeholder="Responsável"
+                    disabled={!canEdit}
                   />
                 </td>
                 <td className="px-3 py-1">
-                  <StarRating value={lead.qualification} onChange={(v) => onFieldChange(lead.id, "qualification", v)} />
+                  <StarRating value={lead.qualification} onChange={canEdit ? (v) => onFieldChange(lead.id, "qualification", v) : undefined} />
                 </td>
                 <td className="px-3 py-1">
                   <select
                     value={lead.status}
+                    disabled={!canEdit}
                     onChange={(e) => onFieldChange(lead.id, "status", e.target.value as LeadStatus)}
                     className={cx(
                       "cursor-pointer rounded-full border px-2 py-1 text-xs font-medium outline-none transition-colors",
@@ -250,6 +262,7 @@ export function LeadsTable({
                 <td className="max-w-[180px] px-3 py-1">
                   <button
                     onClick={() => onOpenNotes(lead)}
+                    disabled={!canEdit}
                     className="flex w-full items-center gap-1.5 truncate rounded-md px-2 py-1.5 text-left text-sm text-slate-500 transition-colors hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
                     title={lead.notes || "Adicionar observação"}
                   >
@@ -258,11 +271,11 @@ export function LeadsTable({
                   </button>
                 </td>
                 <td className="px-3 py-1">
-                  <RowMenu
+                  {canDelete && <RowMenu
                     onDelete={() => onDeleteRequest(lead)}
                     open={openMenuId === lead.id}
                     onOpenChange={(next) => setOpenMenuId(next ? lead.id : null)}
-                  />
+                  />}
                 </td>
               </tr>
             ))}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, Settings2, X } from "lucide-react";
+import { BookOpen, Search, Settings2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/Toast";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -11,7 +11,8 @@ import { usePermissions } from "@/lib/usePermissions";
 import { FollowUpTable } from "@/components/followup/FollowUpTable";
 import { FollowUpLeadPanel } from "@/components/followup/FollowUpLeadPanel";
 import { FollowUpScriptsConfig } from "@/components/followup/FollowUpScriptsConfig";
-import type { FollowUpLeadSummary, FollowUpScript } from "@/types/database";
+import { FollowUpPlaybookPanel } from "@/components/followup/FollowUpPlaybookPanel";
+import type { FollowUpLeadSummary, FollowUpPlaybook, FollowUpScript } from "@/types/database";
 import { BUTTON_SECONDARY, INPUT_BASE, cx, escapePostgrestValue } from "@/lib/utils";
 
 type FilterMode = "active" | "today" | "overdue" | "next7" | "noNextContact" | "completed";
@@ -52,8 +53,8 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
 
   const canView = isOwner || can(companyId, "follow_up", "view");
   const canRegister = isOwner || can(companyId, "follow_up", "register");
+  const canEdit = isOwner || can(companyId, "follow_up", "edit");
   const canDelete = isOwner || can(companyId, "follow_up", "delete");
-  const canConfigureScripts = isOwner || can(companyId, "follow_up", "configure_scripts");
 
   const [rows, setRows] = useState<FollowUpLeadSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,8 +68,11 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
   const [stageFilter, setStageFilter] = useState<"all" | number>("all");
 
   const [scripts, setScripts] = useState<FollowUpScript[]>([]);
+  const [playbooks, setPlaybooks] = useState<FollowUpPlaybook[]>([]);
+  const [maxStage, setMaxStage] = useState(6);
   const [selectedLead, setSelectedLead] = useState<FollowUpLeadSummary | null>(null);
   const [scriptsConfigOpen, setScriptsConfigOpen] = useState(false);
+  const [playbookOpen, setPlaybookOpen] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchInput), 350);
@@ -81,6 +85,20 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
   const loadScripts = useCallback(async () => {
     const { data, error } = await supabase.from("follow_up_scripts").select("*").eq("company_id", companyId);
     if (!error) setScripts((data ?? []) as FollowUpScript[]);
+  }, [supabase, companyId]);
+
+  const loadPlaybooks = useCallback(async () => {
+    const { data, error } = await supabase.from("follow_up_playbooks").select("*").eq("company_id", companyId);
+    if (!error) setPlaybooks((data ?? []) as FollowUpPlaybook[]);
+  }, [supabase, companyId]);
+
+  const loadSettings = useCallback(async () => {
+    const { data } = await supabase
+      .from("follow_up_settings")
+      .select("max_stage")
+      .eq("company_id", companyId)
+      .maybeSingle();
+    setMaxStage((data as { max_stage?: number } | null)?.max_stage ?? 6);
   }, [supabase, companyId]);
 
   const loadIndicators = useCallback(async () => {
@@ -103,21 +121,14 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
         else if (nc <= in7) next7Count++;
       }
 
-      const { data: monthRecords } = await supabase
-        .from("follow_up_records")
-        .select("lead_id, leads!inner(status)")
+      const { data: completedCycles } = await supabase
+        .from("follow_up_cycles")
+        .select("id")
         .eq("company_id", companyId)
-        .gte("created_at", startOfMonthISO());
-      const closedLeadIds = new Set<string>();
-      for (const r of monthRecords ?? []) {
-        const leadStatus = (r as unknown as { lead_id: string; leads: { status: string } | { status: string }[] }).leads;
-        const status = Array.isArray(leadStatus) ? leadStatus[0]?.status : leadStatus?.status;
-        if (status === "contrato_fechado") {
-          closedLeadIds.add((r as { lead_id: string }).lead_id);
-        }
-      }
+        .eq("status", "completed")
+        .gte("completed_at", startOfMonthISO());
 
-      setIndicators({ today: todayCount, overdue: overdueCount, next7: next7Count, completedMonth: closedLeadIds.size });
+      setIndicators({ today: todayCount, overdue: overdueCount, next7: next7Count, completedMonth: completedCycles?.length ?? 0 });
     } catch {
       // Indicadores são um resumo auxiliar — uma falha aqui não deve
       // impedir a listagem principal de carregar.
@@ -154,7 +165,7 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
             query = query.eq("status", "follow_up").is("next_contact_at", null);
             break;
           case "completed":
-            query = query.in("status", ["contrato_fechado", "abandonou"]).not("current_stage", "is", null);
+            query = query.eq("cycle_status", "completed");
             break;
         }
       }
@@ -180,6 +191,8 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
 
   useEffect(() => {
     loadScripts();
+    loadPlaybooks();
+    loadSettings();
     loadIndicators();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId]);
@@ -196,11 +209,13 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
     setStageFilter("all");
   }
 
-  const stageOptions = useMemo(() => {
-    const set = new Set<number>();
-    rows.forEach((r) => r.current_stage && set.add(r.current_stage));
-    return Array.from(set).sort((a, b) => a - b);
-  }, [rows]);
+  const stageOptions = useMemo(() => Array.from({ length: maxStage }, (_, index) => index + 1), [maxStage]);
+  const services = useMemo(() => {
+    const values = new Set<string>();
+    rows.forEach((row) => row.service_interest?.trim() && values.add(row.service_interest.trim()));
+    playbooks.forEach((playbook) => playbook.service_interest?.trim() && values.add(playbook.service_interest.trim()));
+    return Array.from(values).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [rows, playbooks]);
 
   if (!canView) {
     return (
@@ -216,12 +231,18 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
       <SectionHeader
         title="Follow-up"
         action={
-          canConfigureScripts && (
-            <button onClick={() => setScriptsConfigOpen(true)} className={BUTTON_SECONDARY}>
-              <Settings2 className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
-              Configurar scripts
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => setPlaybookOpen(true)} className={BUTTON_SECONDARY}>
+              <BookOpen className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
+              Ver sequência de Follow-up
             </button>
-          )
+            {canEdit && (
+              <button onClick={() => setScriptsConfigOpen(true)} className={BUTTON_SECONDARY}>
+                <Settings2 className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
+                Configurar scripts
+              </button>
+            )}
+          </div>
         }
       />
 
@@ -335,7 +356,6 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
           loading={loading}
           companyName={companyName}
           canRegister={canRegister}
-          scripts={scripts}
           onSelect={setSelectedLead}
         />
       )}
@@ -347,7 +367,9 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
         lead={selectedLead}
         scripts={scripts}
         canRegister={canRegister}
+        canEdit={canEdit}
         canDelete={canDelete}
+        maxStage={maxStage}
         onChanged={refreshAll}
       />
 
@@ -356,7 +378,19 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
         onClose={() => setScriptsConfigOpen(false)}
         companyId={companyId}
         scripts={scripts}
+        maxStage={maxStage}
         onChanged={loadScripts}
+      />
+
+      <FollowUpPlaybookPanel
+        open={playbookOpen}
+        onClose={() => setPlaybookOpen(false)}
+        companyId={companyId}
+        companyName={companyName}
+        playbooks={playbooks}
+        services={services}
+        canEdit={canEdit}
+        onChanged={loadPlaybooks}
       />
     </section>
   );

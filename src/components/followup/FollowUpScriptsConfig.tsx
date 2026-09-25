@@ -15,6 +15,7 @@ interface FollowUpScriptsConfigProps {
   onClose: () => void;
   companyId: string;
   scripts: FollowUpScript[];
+  maxStage: number;
   onChanged: () => void;
 }
 
@@ -26,7 +27,7 @@ const emptyForm = {
   active: true,
 };
 
-export function FollowUpScriptsConfig({ open, onClose, companyId, scripts, onChanged }: FollowUpScriptsConfigProps) {
+export function FollowUpScriptsConfig({ open, onClose, companyId, scripts, maxStage, onChanged }: FollowUpScriptsConfigProps) {
   const supabase = createClient();
   const { showToast } = useToast();
 
@@ -119,7 +120,7 @@ export function FollowUpScriptsConfig({ open, onClose, companyId, scripts, onCha
                 onChange={(e) => setForm((f) => ({ ...f, stage: Number(e.target.value) }))}
                 className={INPUT_BASE}
               >
-                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                {Array.from({ length: maxStage }, (_, i) => i + 1).map((n) => (
                   <option key={n} value={n}>
                     {stageLabel(n)}
                   </option>

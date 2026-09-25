@@ -19,6 +19,7 @@ import {
   getSocialNetworksForCompany,
 } from "@/lib/socialMedia";
 import { BUTTON_SECONDARY, cx } from "@/lib/utils";
+import { usePermissions } from "@/lib/usePermissions";
 
 function currentYearMonth() {
   const now = new Date();
@@ -32,6 +33,11 @@ function prevYearMonth(year: number, month: number) {
 export function SocialMediaSection({ company }: { company: Company }) {
   const supabase = createClient();
   const { showToast } = useToast();
+  const { can, isOwner } = usePermissions();
+  const canEditMetrics = isOwner || can(company.id, "social", "edit_metrics");
+  const canAddContent = isOwner || can(company.id, "social", "add_content");
+  const canEditContent = isOwner || can(company.id, "social", "edit_content");
+  const canDeleteContent = isOwner || can(company.id, "social", "delete_content");
 
   const networks = getSocialNetworksForCompany(company.slug);
   const [network, setNetwork] = useState<SocialNetwork>(networks[0]);
@@ -115,7 +121,7 @@ export function SocialMediaSection({ company }: { company: Company }) {
         title="Redes Sociais"
         subtitle="Preenchimento manual"
         action={
-          <button onClick={() => setEditOpen(true)} className={BUTTON_SECONDARY}>
+          canEditMetrics && <button onClick={() => setEditOpen(true)} className={BUTTON_SECONDARY}>
             <Pencil className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
             Editar métricas
           </button>
@@ -199,7 +205,15 @@ export function SocialMediaSection({ company }: { company: Company }) {
         </div>
       )}
 
-      <SocialTopContents companyId={company.id} network={network} year={year} month={month} />
+      <SocialTopContents
+        companyId={company.id}
+        network={network}
+        year={year}
+        month={month}
+        canAdd={canAddContent}
+        canEdit={canEditContent}
+        canDelete={canDeleteContent}
+      />
 
       <EditSocialMetricsModal
         open={editOpen}

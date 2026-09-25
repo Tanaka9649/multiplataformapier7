@@ -17,6 +17,9 @@ interface SocialContentCardProps {
   content: SocialTopContent;
   canMoveUp: boolean;
   canMoveDown: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  canReorder: boolean;
   onEdit: () => void;
   onDelete: () => void;
   onMoveUp: () => void;
@@ -27,6 +30,9 @@ export function SocialContentCard({
   content,
   canMoveUp,
   canMoveDown,
+  canEdit,
+  canDelete,
+  canReorder,
   onEdit,
   onDelete,
   onMoveUp,
@@ -100,42 +106,42 @@ export function SocialContentCard({
           Ver conteúdo
         </a>
 
-        <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-zinc-800">
+        {(canEdit || canDelete || canReorder) && <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-zinc-800">
           <div className="flex gap-1">
-            <button
+            {canReorder && <button
               onClick={onMoveUp}
               disabled={!canMoveUp}
               aria-label="Mover para cima"
               className="flex h-6 w-6 items-center justify-center rounded text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-30 dark:text-zinc-500 dark:hover:bg-zinc-800"
             >
               <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.25} />
-            </button>
-            <button
+            </button>}
+            {canReorder && <button
               onClick={onMoveDown}
               disabled={!canMoveDown}
               aria-label="Mover para baixo"
               className="flex h-6 w-6 items-center justify-center rounded text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-30 dark:text-zinc-500 dark:hover:bg-zinc-800"
             >
               <ArrowDown className="h-3.5 w-3.5" strokeWidth={2.25} />
-            </button>
+            </button>}
           </div>
           <div className="flex gap-1">
-            <button
+            {canEdit && <button
               onClick={onEdit}
               aria-label="Editar conteúdo"
               className="flex h-6 w-6 items-center justify-center rounded text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:text-zinc-500 dark:hover:bg-zinc-800"
             >
               <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
-            </button>
-            <button
+            </button>}
+            {canDelete && <button
               onClick={onDelete}
               aria-label="Excluir conteúdo"
               className="flex h-6 w-6 items-center justify-center rounded text-red-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-red-500 dark:hover:bg-red-950/30"
             >
               <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-            </button>
+            </button>}
           </div>
-        </div>
+        </div>}
       </div>
     </div>
   );

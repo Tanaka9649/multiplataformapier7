@@ -70,31 +70,18 @@ conteúdo de cada arquivo em `supabase/migrations/`:
 Todos os scripts podem ser colados e executados de uma vez (Run) — são
 escritos para rodar em sequência sem intervenção manual.
 
-## 3. Criar o primeiro usuário (admin)
+## 3. Gestão de usuários
 
-A aplicação não tem tela de convite de usuários ainda. O fluxo é:
+O Owner administra acessos em `/admin/users`. A tela **Criar acesso** recebe
+nome, e-mail, senha, perfil, empresas e permissões específicas por empresa.
+O backend cria a conta com `auth.admin.createUser`, confirma o e-mail sem
+enviar convite e grava somente perfil/empresas/permissões — a senha existe
+exclusivamente no Supabase Auth.
 
-1. Rode a aplicação (local ou já em produção) e acesse `/login`.
-2. Clique em **"Não tem conta? Criar acesso"** e cadastre o primeiro
-   e-mail/senha.
-3. **O primeiro usuário cadastrado no projeto vira admin automaticamente e
-   já recebe acesso a todas as empresas** (ver trigger `handle_new_user` em
-   `0001_schema.sql`).
-4. Se o Supabase estiver com confirmação de e-mail obrigatória ativada
-   (padrão), confirme o e-mail antes do primeiro login — ou desative
-   temporariamente em **Authentication → Providers → Email → Confirm
-   email** durante o setup inicial.
-
-Para liberar outros usuários depois, insira manualmente em
-`user_companies` pelo SQL Editor (ainda não há UI de gestão de usuários):
-
-```sql
-insert into public.user_companies (user_id, company_id)
-select u.id, c.id
-from auth.users u, public.companies c
-where u.email = 'pessoa@pier7.com.br'
-  and c.slug in ('pier7', 'cp-desenvolvimento'); -- empresas liberadas
-```
+Para esse fluxo funcionar, configure `SUPABASE_SERVICE_ROLE_KEY` apenas no
+ambiente server-side da Vercel (Production e Preview). Nunca use o prefixo
+`NEXT_PUBLIC_` e mantenha a mesma variável apenas em `.env.local` no
+desenvolvimento local.
 
 ## 4. Variáveis de ambiente
 
@@ -148,11 +135,11 @@ de Leads também removido para Pier7; Movva mantém todo o resto.
 
 - RLS habilitado em todas as tabelas — nenhuma linha é visível sem que o
   usuário tenha vínculo em `user_companies` (ou seja admin).
-- Buckets do Storage (`spreadsheet-images`, `qualified-leads`) são privados;
+- Buckets do Storage (`spreadsheet-images`, `qualified-leads`, `social-content`) são privados;
   arquivos são organizados por `<company_id>/<arquivo>` e as políticas de
   Storage reutilizam a mesma checagem de autorização das tabelas.
-- Nenhuma service role key é usada no client — só a `anon key`, protegida
-  pelas políticas de RLS.
+- A service role é carregada somente pelo client administrativo server-only;
+  o bundle do navegador usa apenas a anon key, protegida pelas políticas de RLS.
 - `company_id` nunca é confiável vindo "puro" do client sem que o banco
   reafirme a autorização via RLS em toda escrita.
 

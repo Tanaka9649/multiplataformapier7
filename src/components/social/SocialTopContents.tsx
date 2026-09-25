@@ -18,9 +18,12 @@ interface SocialTopContentsProps {
   network: SocialNetwork;
   year: number;
   month: number;
+  canAdd: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
 }
 
-export function SocialTopContents({ companyId, network, year, month }: SocialTopContentsProps) {
+export function SocialTopContents({ companyId, network, year, month, canAdd, canEdit, canDelete }: SocialTopContentsProps) {
   const supabase = createClient();
   const { showToast } = useToast();
 
@@ -109,7 +112,7 @@ export function SocialTopContents({ companyId, network, year, month }: SocialTop
       <SectionHeader
         title="Conteúdos com melhor resultado"
         action={
-          <button onClick={openAdd} className={BUTTON_PRIMARY}>
+          canAdd && <button onClick={openAdd} className={BUTTON_PRIMARY}>
             <Plus className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
             Adicionar conteúdo
           </button>
@@ -132,6 +135,9 @@ export function SocialTopContents({ companyId, network, year, month }: SocialTop
                 content={item}
                 canMoveUp={i > 0}
                 canMoveDown={i < items.length - 1}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                canReorder={canEdit}
                 onEdit={() => openEdit(item)}
                 onDelete={() => setToDelete(item)}
                 onMoveUp={() => handleMove(i, -1)}
@@ -142,7 +148,7 @@ export function SocialTopContents({ companyId, network, year, month }: SocialTop
         </div>
       )}
 
-      <SocialContentModal
+      {(canAdd || canEdit) && <SocialContentModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         companyId={companyId}
@@ -152,9 +158,9 @@ export function SocialTopContents({ companyId, network, year, month }: SocialTop
         existing={editing}
         nextSortOrder={nextSortOrder}
         onSaved={load}
-      />
+      />}
 
-      <ConfirmDialog
+      {canDelete && <ConfirmDialog
         open={!!toDelete}
         title="Excluir conteúdo"
         message="Tem certeza que deseja excluir este conteúdo? Essa ação não pode ser desfeita."
@@ -162,7 +168,7 @@ export function SocialTopContents({ companyId, network, year, month }: SocialTop
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setToDelete(null)}
-      />
+      />}
     </section>
   );
 }

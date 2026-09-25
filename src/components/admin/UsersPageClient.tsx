@@ -32,6 +32,12 @@ interface UserCompanyRow {
   user_id: string;
   company_id: string;
 }
+interface RoleRow {
+  profile_id: string;
+  module_key: string;
+  action: string;
+  allowed: boolean;
+}
 
 const FILTERS: { key: "all" | UserStatus; label: string }[] = [
   { key: "all", label: "Todos" },
@@ -51,11 +57,13 @@ export function UsersPageClient({
   permissionProfiles,
   companies,
   userCompanies,
+  roleRows,
 }: {
   profiles: ProfileRow[];
   permissionProfiles: PermissionProfileRow[];
   companies: CompanyRow[];
   userCompanies: UserCompanyRow[];
+  roleRows: RoleRow[];
 }) {
   const router = useRouter();
   const [filter, setFilter] = useState<"all" | UserStatus>("all");
@@ -200,6 +208,7 @@ export function UsersPageClient({
         onClose={() => setCreateOpen(false)}
         permissionProfiles={permissionProfiles}
         companies={companies}
+        roleRows={roleRows}
         onCreated={() => router.refresh()}
       />
     </main>

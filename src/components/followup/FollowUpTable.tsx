@@ -1,7 +1,7 @@
 "use client";
 
-import { FileText, NotebookText, PhoneCall } from "lucide-react";
-import type { FollowUpLeadSummary, FollowUpScript } from "@/types/database";
+import { NotebookText, PhoneCall } from "lucide-react";
+import type { FollowUpLeadSummary } from "@/types/database";
 import {
   CARD_SURFACE,
   FOLLOW_UP_OVERDUE_BADGE,
@@ -10,7 +10,6 @@ import {
   cx,
   formatDatePtBR,
   formatDaysOverdue,
-  pickFollowUpScript,
   stageLabel,
 } from "@/lib/utils";
 
@@ -24,11 +23,10 @@ interface FollowUpTableProps {
   loading: boolean;
   companyName: string;
   canRegister: boolean;
-  scripts: FollowUpScript[];
   onSelect: (row: FollowUpLeadSummary) => void;
 }
 
-export function FollowUpTable({ rows, loading, companyName, canRegister, scripts, onSelect }: FollowUpTableProps) {
+export function FollowUpTable({ rows, loading, companyName, canRegister, onSelect }: FollowUpTableProps) {
   return (
     <div className={cx(CARD_SURFACE, "overflow-hidden p-0")}>
       <div className="scrollbar-thin overflow-x-auto">
@@ -46,7 +44,7 @@ export function FollowUpTable({ rows, loading, companyName, canRegister, scripts
                 "Último follow-up",
                 "Próximo follow-up",
                 "Observação",
-                "Script",
+                "Resultado",
                 "Ação",
               ].map((label) => (
                 <th
@@ -61,8 +59,6 @@ export function FollowUpTable({ rows, loading, companyName, canRegister, scripts
           <tbody className={cx("divide-y divide-slate-100 transition-opacity duration-200 dark:divide-zinc-800/70", loading && "opacity-50")}>
             {rows.map((row) => {
               const overdue = isOverdue(row.next_contact_at);
-              const nextStage = (row.current_stage ?? 0) + 1;
-              const script = pickFollowUpScript(scripts, nextStage, row.service_interest);
               return (
                 <tr
                   key={row.lead_id}
@@ -112,14 +108,15 @@ export function FollowUpTable({ rows, loading, companyName, canRegister, scripts
                     </div>
                   </td>
                   <td className="max-w-[160px] px-3 py-2">
-                    {script ? (
-                      <div
-                        className="flex items-center gap-1.5 truncate text-slate-500 dark:text-zinc-400"
-                        title={script.content}
-                      >
-                        <FileText className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{script.content}</span>
-                      </div>
+                    {row.outcome ? (
+                      <span className={cx(
+                        "rounded-full border px-2 py-0.5 text-xs font-medium",
+                        row.outcome === "success"
+                          ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300"
+                          : "border-slate-200 bg-slate-50 text-slate-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+                      )}>
+                        {row.outcome === "success" ? "Sucesso" : "Sem retorno"}
+                      </span>
                     ) : (
                       <span className="text-slate-300 dark:text-zinc-600">—</span>
                     )}
@@ -133,7 +130,7 @@ export function FollowUpTable({ rows, loading, companyName, canRegister, scripts
                       className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
                     >
                       <PhoneCall className="h-3.5 w-3.5" />
-                      {canRegister ? "Registrar follow-up" : "Ver histórico"}
+                      {canRegister && row.status === "follow_up" && row.cycle_status !== "completed" ? "Registrar follow-up" : "Ver histórico"}
                     </button>
                   </td>
                 </tr>

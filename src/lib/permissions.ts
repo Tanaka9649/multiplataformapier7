@@ -28,10 +28,10 @@ export type ActionKey =
   | "edit_metrics"
   | "manage_goals"
   | "edit_observations"
+  | "add_content"
   | "edit_content"
   | "delete_content"
-  | "register"
-  | "configure_scripts";
+  | "register";
 
 export interface ModuleAction {
   key: ActionKey;
@@ -64,7 +64,8 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     actions: [
       { key: "view", label: "Visualizar" },
       { key: "edit_metrics", label: "Editar métricas" },
-      { key: "edit_content", label: "Adicionar/editar conteúdos" },
+      { key: "add_content", label: "Adicionar conteúdo" },
+      { key: "edit_content", label: "Editar conteúdo" },
       { key: "delete_content", label: "Excluir conteúdos" },
     ],
   },
@@ -81,7 +82,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
   },
   {
     key: "spreadsheets",
-    label: "Planilhas",
+    label: "Documentos",
     implemented: true,
     actions: [
       { key: "view", label: "Visualizar" },
@@ -125,7 +126,6 @@ export const PERMISSION_MODULES: PermissionModule[] = [
       { key: "register", label: "Registrar follow-up" },
       { key: "edit", label: "Editar registro" },
       { key: "delete", label: "Excluir registro" },
-      { key: "configure_scripts", label: "Configurar scripts" },
     ],
   },
   {

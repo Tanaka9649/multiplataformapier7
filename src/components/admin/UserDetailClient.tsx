@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import type { Profile, UserStatus } from "@/types/database";
 import { PERMISSION_MODULES } from "@/lib/permissions";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -70,8 +71,8 @@ export function UserDetailClient({
   const [profileName, setProfileName] = useState(
     permissionProfiles.find((p) => p.id === profile.permission_profile_id)?.name ?? permissionProfiles[0]?.name ?? ""
   );
-  const initialProfileId = profile.permission_profile_id ?? undefined;
-  const baseMap = useMemo(() => buildBaseMap(roleRows, initialProfileId), [roleRows, initialProfileId]);
+  const currentProfileId = permissionProfiles.find((item) => item.name === profileName)?.id;
+  const baseMap = useMemo(() => buildBaseMap(roleRows, currentProfileId), [roleRows, currentProfileId]);
 
   const [matrixByCompany, setMatrixByCompany] = useState<Map<string, Map<string, boolean>>>(() => {
     const result = new Map<string, Map<string, boolean>>();
@@ -91,7 +92,7 @@ export function UserDetailClient({
     return result;
   });
 
-  const [activeCompanyId, setActiveCompanyId] = useState<string>(userCompanyIds[0] ?? "");
+  const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set(userCompanyIds.slice(0, 1)));
   const [saving, setSaving] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [confirmAction, setConfirmAction] = useState<null | "suspend" | "reject">(null);
@@ -101,6 +102,11 @@ export function UserDetailClient({
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
+        setExpandedCompanies((expanded) => {
+          const updated = new Set(expanded);
+          updated.delete(id);
+          return updated;
+        });
       } else {
         next.add(id);
         if (!matrixByCompany.has(id)) {
@@ -114,9 +120,28 @@ export function UserDetailClient({
             }
           }
           setMatrixByCompany((prevMatrix) => new Map(prevMatrix).set(id, map));
-          if (!activeCompanyId) setActiveCompanyId(id);
         }
+        setExpandedCompanies((expanded) => new Set(expanded).add(id));
       }
+      return next;
+    });
+  }
+
+  function changeProfile(nextProfileName: string) {
+    setProfileName(nextProfileName);
+    const profileId = permissionProfiles.find((item) => item.name === nextProfileName)?.id;
+    const preset = buildBaseMap(roleRows, profileId);
+    setMatrixByCompany((previous) => {
+      const next = new Map(previous);
+      for (const companyId of selectedCompanies) next.set(companyId, new Map(preset));
+      return next;
+    });
+  }
+
+  function toggleExpanded(companyId: string) {
+    setExpandedCompanies((previous) => {
+      const next = new Set(previous);
+      if (next.has(companyId)) next.delete(companyId); else next.add(companyId);
       return next;
     });
   }
@@ -239,7 +264,7 @@ export function UserDetailClient({
         <>
           <div className={cx(CARD_SURFACE, "mb-6 p-5")}>
             <label className={LABEL_BASE}>Perfil de permissão</label>
-            <select value={profileName} onChange={(e) => setProfileName(e.target.value)} className={cx(INPUT_BASE, "mb-4 max-w-xs")}>
+            <select value={profileName} onChange={(e) => changeProfile(e.target.value)} className={cx(INPUT_BASE, "mb-4 max-w-xs")}>
               {permissionProfiles.map((p) => (
                 <option key={p.id} value={p.name}>
                   {p.name}
@@ -266,30 +291,25 @@ export function UserDetailClient({
           {activeCompanies.length > 0 && (
             <div className={cx(CARD_SURFACE, "mb-6 p-5")}>
               <h2 className="mb-3 text-sm font-semibold text-slate-800 dark:text-zinc-200">Matriz de permissões</h2>
-
-              <div className="mb-3 flex flex-wrap gap-1.5 border-b border-slate-100 pb-3 dark:border-zinc-800">
-                {activeCompanies.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => setActiveCompanyId(c.id)}
-                    className={cx(
-                      "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-150",
-                      activeCompanyId === c.id
-                        ? "bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                        : "bg-slate-50 text-slate-500 hover:text-slate-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
-                    )}
-                  >
-                    {c.name}
-                  </button>
-                ))}
+              <div className="space-y-2">
+                {activeCompanies.map((company) => {
+                  const expanded = expandedCompanies.has(company.id);
+                  const matrix = matrixByCompany.get(company.id);
+                  return (
+                    <div key={company.id} className="rounded-xl border border-slate-200 dark:border-zinc-800">
+                      <button type="button" onClick={() => toggleExpanded(company.id)} className="flex w-full items-center justify-between px-4 py-3 text-left">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-zinc-200">Permissões — {company.name}</span>
+                        {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      </button>
+                      {expanded && matrix && (
+                        <div className="border-t border-slate-100 px-4 dark:border-zinc-800">
+                          <PermissionMatrix value={matrix} onChange={(next) => setMatrixByCompany((previous) => new Map(previous).set(company.id, next))} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-
-              {activeCompanyId && matrixByCompany.get(activeCompanyId) && (
-                <PermissionMatrix
-                  value={matrixByCompany.get(activeCompanyId)!}
-                  onChange={(next) => setMatrixByCompany((prev) => new Map(prev).set(activeCompanyId, next))}
-                />
-              )}
             </div>
           )}
 

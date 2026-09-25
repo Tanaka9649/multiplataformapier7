@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pencil, Plus, StickyNote } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Modal } from "@/components/Modal";
@@ -19,7 +19,7 @@ import {
 } from "@/lib/utils";
 
 export function CompanyObservation({ companyId }: { companyId: string }) {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const { showToast } = useToast();
 
   const [observation, setObservation] = useState<CompanyObservationRow | null>(null);
@@ -43,7 +43,7 @@ export function CompanyObservation({ companyId }: { companyId: string }) {
     } finally {
       setLoading(false);
     }
-  }, [companyId]);
+  }, [companyId, showToast, supabase]);
 
   useEffect(() => {
     load();

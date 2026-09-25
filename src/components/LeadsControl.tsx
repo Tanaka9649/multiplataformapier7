@@ -13,6 +13,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Skeleton } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import type { Lead, LeadOrigin, LeadStatus } from "@/types/database";
+import { usePermissions } from "@/lib/usePermissions";
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
@@ -33,6 +34,12 @@ type StatusFilter = "all" | LeadStatus;
 export function LeadsControl({ companyId }: { companyId: string }) {
   const supabase = createClient();
   const { showToast } = useToast();
+  const { can, isOwner } = usePermissions();
+  const canAdd = isOwner || can(companyId, "leads_control", "add");
+  const canEdit = isOwner || can(companyId, "leads_control", "edit");
+  const canDelete = isOwner || can(companyId, "leads_control", "delete");
+  const canImport = isOwner || can(companyId, "leads_control", "import");
+  const canExport = isOwner || can(companyId, "leads_control", "export");
 
   const [leads, setLeads] = useState<Lead[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -223,10 +230,10 @@ export function LeadsControl({ companyId }: { companyId: string }) {
                 {saveStatus === "saving" ? "Salvando..." : "Salvo"}
               </span>
             )}
-            <button onClick={() => setFormOpen(true)} className={BUTTON_PRIMARY}>
+            {canAdd && <button onClick={() => setFormOpen(true)} className={BUTTON_PRIMARY}>
               <Plus className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
               Adicionar lead
-            </button>
+            </button>}
           </div>
         }
       />
@@ -293,11 +300,11 @@ export function LeadsControl({ companyId }: { companyId: string }) {
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => setImportOpen(true)} className={BUTTON_SECONDARY}>
+            {canImport && <button onClick={() => setImportOpen(true)} className={BUTTON_SECONDARY}>
               <Upload className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
               Importar
-            </button>
-            <div className="relative">
+            </button>}
+            {canExport && <div className="relative">
               <button onClick={() => setExportMenuOpen((v) => !v)} className={BUTTON_SECONDARY}>
                 <Download className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
                 Exportar
@@ -340,7 +347,7 @@ export function LeadsControl({ companyId }: { companyId: string }) {
                   </div>
                 </>
               )}
-            </div>
+            </div>}
           </div>
         </div>
 
@@ -366,6 +373,8 @@ export function LeadsControl({ companyId }: { companyId: string }) {
             onFieldChange={handleFieldChange}
             onOpenNotes={setNotesLead}
             onDeleteRequest={setToDelete}
+            canEdit={canEdit}
+            canDelete={canDelete}
           />
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -404,21 +413,21 @@ export function LeadsControl({ companyId }: { companyId: string }) {
         </>
       )}
 
-      <LeadFormModal
+      {canAdd && <LeadFormModal
         open={formOpen}
         onClose={() => setFormOpen(false)}
         companyId={companyId}
         onCreated={() => load()}
-      />
+      />}
 
-      <LeadImportModal
+      {canImport && <LeadImportModal
         open={importOpen}
         onClose={() => setImportOpen(false)}
         companyId={companyId}
         onImported={() => load()}
-      />
+      />}
 
-      <LeadNotesModal
+      {canEdit && <LeadNotesModal
         open={!!notesLead}
         onClose={() => setNotesLead(null)}
         leadId={notesLead?.id ?? null}
@@ -427,9 +436,9 @@ export function LeadsControl({ companyId }: { companyId: string }) {
         onSaved={(leadId, notes) => {
           setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, notes } : l)));
         }}
-      />
+      />}
 
-      <ConfirmDialog
+      {canDelete && <ConfirmDialog
         open={!!toDelete}
         title="Excluir este lead?"
         message="Essa ação não poderá ser desfeita."
@@ -437,7 +446,7 @@ export function LeadsControl({ companyId }: { companyId: string }) {
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setToDelete(null)}
-      />
+      />}
     </section>
   );
 }

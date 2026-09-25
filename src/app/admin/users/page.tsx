@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminUsersPage() {
   const supabase = createClient();
 
-  const [{ data: profiles }, { data: permissionProfiles }, { data: companies }, { data: userCompanies }] =
+  const [{ data: profiles }, { data: permissionProfiles }, { data: companies }, { data: userCompanies }, { data: roleRows }] =
     await Promise.all([
       supabase
         .from("profiles")
@@ -18,6 +18,7 @@ export default async function AdminUsersPage() {
       supabase.from("permission_profiles").select("id, name, description").order("name"),
       supabase.from("companies").select("id, name, slug").eq("active", true).order("sort_order"),
       supabase.from("user_companies").select("user_id, company_id"),
+      supabase.from("role_permissions").select("profile_id, module_key, action, allowed"),
     ]);
 
   return (
@@ -28,6 +29,7 @@ export default async function AdminUsersPage() {
         permissionProfiles={permissionProfiles ?? []}
         companies={companies ?? []}
         userCompanies={userCompanies ?? []}
+        roleRows={roleRows ?? []}
       />
     </>
   );

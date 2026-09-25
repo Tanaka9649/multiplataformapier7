@@ -187,6 +187,21 @@ export function pickFollowUpScript(
   return fallback ?? null;
 }
 
+/** Mesma prioridade dos scripts: empresa+serviço; na ausência, playbook geral. */
+export function pickFollowUpPlaybook(
+  playbooks: import("@/types/database").FollowUpPlaybook[],
+  serviceInterest: string
+): import("@/types/database").FollowUpPlaybook | null {
+  const service = serviceInterest.trim().toLowerCase();
+  if (service) {
+    const specific = playbooks.find(
+      (playbook) => playbook.active && (playbook.service_interest ?? "").trim().toLowerCase() === service
+    );
+    if (specific) return specific;
+  }
+  return playbooks.find((playbook) => playbook.active && !playbook.service_interest?.trim()) ?? null;
+}
+
 export function formatDaysOverdue(nextContactAt: string): string {
   const today = new Date();
   today.setHours(0, 0, 0, 0);

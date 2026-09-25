@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireOwner } from "@/lib/supabase/requireOwner";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAdminAction } from "@/lib/adminAudit";
+import { PERMISSION_MODULES } from "@/lib/permissions";
 
 interface OverrideInput {
   companyId: string;
@@ -15,6 +16,10 @@ interface PermissionsBody {
   companyIds?: string[];
   overrides?: OverrideInput[];
 }
+
+const allowedActions = new Set(
+  PERMISSION_MODULES.flatMap((module) => module.actions.map((action) => `${module.key}:${action.key}`))
+);
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   const auth = await requireOwner();
@@ -30,6 +35,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
   } catch {
     return NextResponse.json({ error: "Corpo da requisição inválido." }, { status: 400 });
   }
+  const companyIds = body.companyIds ? Array.from(new Set(body.companyIds)) : undefined;
 
   let admin;
   try {
@@ -58,6 +64,34 @@ export async function POST(request: Request, { params }: { params: { id: string 
       : Promise.resolve({ data: null as { name: string } | null }),
   ]);
 
+  const effectiveCompanyIds = companyIds ?? (beforeCompanies ?? []).map((row) => row.company_id);
+  if (companyIds) {
+    const { data: validCompanies, error } = companyIds.length
+      ? await admin.from("companies").select("id").in("id", companyIds).eq("active", true)
+      : { data: [] as { id: string }[], error: null };
+    if (error || (validCompanies ?? []).length !== companyIds.length) {
+      return NextResponse.json({ error: "Uma ou mais empresas são inválidas." }, { status: 400 });
+    }
+  }
+
+  if (body.overrides) {
+    const selected = new Set(effectiveCompanyIds);
+    const seen = new Set<string>();
+    for (const override of body.overrides) {
+      const permissionKey = `${override.moduleKey}:${override.action}`;
+      const uniqueKey = `${override.companyId}:${permissionKey}`;
+      if (
+        !selected.has(override.companyId) ||
+        !allowedActions.has(permissionKey) ||
+        typeof override.allowed !== "boolean" ||
+        seen.has(uniqueKey)
+      ) {
+        return NextResponse.json({ error: "Configuração de permissões inválida." }, { status: 400 });
+      }
+      seen.add(uniqueKey);
+    }
+  }
+
   if (body.permissionProfileName) {
     const { data: profileRow, error: profileLookupError } = await admin
       .from("permission_profiles")
@@ -71,10 +105,10 @@ export async function POST(request: Request, { params }: { params: { id: string 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  if (body.companyIds) {
+  if (companyIds) {
     await admin.from("user_companies").delete().eq("user_id", targetUserId);
-    if (body.companyIds.length > 0) {
-      const rows = body.companyIds.map((companyId) => ({ user_id: targetUserId, company_id: companyId }));
+    if (companyIds.length > 0) {
+      const rows = companyIds.map((companyId) => ({ user_id: targetUserId, company_id: companyId }));
       const { error } = await admin.from("user_companies").insert(rows);
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     }
@@ -106,8 +140,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
       },
       after: {
         permissionProfile: body.permissionProfileName ?? beforeProfile?.name ?? null,
-        companyIds: body.companyIds ?? (beforeCompanies ?? []).map((r) => r.company_id),
-        overridesCount: body.overrides?.length,
+        companyIds: companyIds ?? (beforeCompanies ?? []).map((r) => r.company_id),
+        permissionOverrides: body.overrides ?? null,
       },
     },
   });

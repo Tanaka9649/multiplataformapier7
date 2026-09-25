@@ -154,6 +154,20 @@ export interface FollowUpScript {
   updated_at: string;
 }
 
+export interface FollowUpPlaybook {
+  id: string;
+  company_id: string;
+  service_interest: string | null;
+  content: string;
+  active: boolean;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type FollowUpOutcome = "success" | "no_response";
+export type FollowUpCycleStatus = "active" | "completed";
+
 /** Uma linha por lead com o resumo do follow-up mais recente — espelha a
  *  view `follow_up_lead_summary` (ver supabase/migrations/0015). */
 export interface FollowUpLeadSummary {
@@ -168,6 +182,9 @@ export interface FollowUpLeadSummary {
   last_contact_at: string | null;
   next_contact_at: string | null;
   last_notes: string | null;
+  cycle_status: FollowUpCycleStatus | null;
+  outcome: FollowUpOutcome | null;
+  cycle_completed_at: string | null;
 }
 
 /** Métrica já combinada (definição + config da empresa + valor atual),
