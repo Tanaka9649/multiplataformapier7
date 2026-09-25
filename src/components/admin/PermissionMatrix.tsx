@@ -9,7 +9,7 @@ import {
   type ActionKey,
   type SimpleLevel,
 } from "@/lib/permissions";
-import { cx } from "@/lib/utils";
+import { SELECTED_PILL, UNSELECTED_PILL, cx } from "@/lib/utils";
 
 const SIMPLE_OPTIONS: { value: SimpleLevel; label: string }[] = [
   { value: "none", label: "Sem acesso" },
@@ -106,8 +106,8 @@ export function PermissionMatrix({ value, onChange }: PermissionMatrixProps) {
                     className={cx(
                       "rounded-md px-2.5 py-1 text-xs font-medium transition-colors duration-150 disabled:cursor-not-allowed",
                       level === opt.value
-                        ? "bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                        : "text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                        ? SELECTED_PILL
+                        : UNSELECTED_PILL
                     )}
                   >
                     {opt.label}

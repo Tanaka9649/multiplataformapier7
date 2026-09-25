@@ -19,6 +19,8 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { SocialMediaSection } from "@/components/social/SocialMediaSection";
 import { PermissionsProvider, usePermissions } from "@/lib/usePermissions";
 import { SuspensionWatcher } from "@/components/SuspensionWatcher";
+import { cx } from "@/lib/utils";
+import { FollowUpNotificationCenter } from "@/components/followup/FollowUpNotificationCenter";
 
 const LAST_COMPANY_KEY = "pier7:lastCompany";
 const VALID_TABS: DashboardTab[] = ["traffic", "calendar", "spreadsheets", "leadsControl", "followUp", "social"];
@@ -165,6 +167,7 @@ function DashboardShellInner({
             {userEmail && (
               <span className="hidden text-xs text-slate-400 dark:text-zinc-500 sm:inline">{userEmail}</span>
             )}
+            <FollowUpNotificationCenter />
             <ThemeToggle />
             <form action="/auth/signout" method="post">
               <button
@@ -192,7 +195,10 @@ function DashboardShellInner({
           <CompanySwitcher companies={companiesWithAccess} activeSlug={activeSlug} onSelect={handleSelectCompany} />
           <MainNavigation activeTab={activeTab} onSelect={handleSelectTab} visibleTabs={activeTabs} />
 
-          <main className="mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:px-8">
+          <main className={cx(
+            "mx-auto px-4 py-7 transition-[max-width] sm:px-6 lg:px-8",
+            activeTab === "calendar" ? "max-w-[1680px]" : "max-w-7xl"
+          )}>
             {activeCompany && (
               <div key={`${activeCompany.id}-${activeTab}`} className="animate-fade-in-up">
                 {activeTab === "traffic" && <MetricsGrid company={activeCompany} />}

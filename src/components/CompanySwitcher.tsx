@@ -1,7 +1,7 @@
 "use client";
 
 import type { Company } from "@/types/database";
-import { cx } from "@/lib/utils";
+import { SELECTED_PILL, UNSELECTED_PILL, cx } from "@/lib/utils";
 
 interface CompanySwitcherProps {
   companies: Company[];
@@ -24,8 +24,8 @@ export function CompanySwitcher({ companies, activeSlug, onSelect }: CompanySwit
               className={cx(
                 "shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition-all duration-150 active:scale-[0.97]",
                 active
-                  ? "bg-brand-50 text-brand-800 ring-1 ring-inset ring-brand-200/80 dark:bg-zinc-800 dark:text-zinc-50 dark:ring-zinc-700/80"
-                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
+                  ? SELECTED_PILL
+                  : UNSELECTED_PILL
               )}
             >
               {company.name}

@@ -6,7 +6,7 @@ import { useToast } from "@/components/Toast";
 import { createClient } from "@/lib/supabase/client";
 import type { CompanyGoal, GoalValueSource } from "@/types/database";
 import type { GoalMetricOption } from "@/components/GoalsSection";
-import { BUTTON_GHOST, BUTTON_PRIMARY, BUTTON_SECONDARY, INPUT_BASE, LABEL_BASE, cx } from "@/lib/utils";
+import { BUTTON_GHOST, BUTTON_PRIMARY, BUTTON_SECONDARY, INPUT_BASE, LABEL_BASE, SELECTED_CONTROL, UNSELECTED_CONTROL, cx } from "@/lib/utils";
 
 interface GoalModalProps {
   open: boolean;
@@ -187,8 +187,8 @@ export function GoalModal({ open, onClose, companyId, goal, metricOptions, onSav
               className={cx(
                 "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
                 valueSource === "metric"
-                  ? "border-brand-500 bg-brand-50 text-brand-800 dark:border-brand-500 dark:bg-brand-950/40 dark:text-brand-300"
-                  : "border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                  ? SELECTED_CONTROL
+                  : UNSELECTED_CONTROL
               )}
             >
               Automático (da métrica)
@@ -199,8 +199,8 @@ export function GoalModal({ open, onClose, companyId, goal, metricOptions, onSav
               className={cx(
                 "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
                 valueSource === "manual"
-                  ? "border-brand-500 bg-brand-50 text-brand-800 dark:border-brand-500 dark:bg-brand-950/40 dark:text-brand-300"
-                  : "border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                  ? SELECTED_CONTROL
+                  : UNSELECTED_CONTROL
               )}
             >
               Informado manualmente

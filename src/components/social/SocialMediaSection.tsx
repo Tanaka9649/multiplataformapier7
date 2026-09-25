@@ -18,7 +18,7 @@ import {
   SOCIAL_NETWORK_LABELS,
   getSocialNetworksForCompany,
 } from "@/lib/socialMedia";
-import { BUTTON_SECONDARY, cx } from "@/lib/utils";
+import { BUTTON_SECONDARY, SELECTED_PILL, UNSELECTED_PILL, cx } from "@/lib/utils";
 import { usePermissions } from "@/lib/usePermissions";
 
 function currentYearMonth() {
@@ -138,8 +138,8 @@ export function SocialMediaSection({ company }: { company: Company }) {
                 className={cx(
                   "rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-150",
                   n === network
-                    ? "bg-brand-50 text-brand-800 dark:bg-zinc-800 dark:text-zinc-50"
-                    : "text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                    ? SELECTED_PILL
+                    : UNSELECTED_PILL
                 )}
               >
                 {SOCIAL_NETWORK_LABELS[n]}

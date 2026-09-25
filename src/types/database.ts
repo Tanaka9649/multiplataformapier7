@@ -39,6 +39,7 @@ export interface CalendarItem {
   id: string;
   company_id: string;
   date: string;
+  title: string;
   type: CalendarItemType;
   status: CalendarItemStatus;
   description: string | null;
@@ -141,6 +142,10 @@ export interface FollowUpRecord {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  cycle_id: string | null;
+  schedule_id: string | null;
+  result: FollowUpResult | null;
+  delay_hours: number | null;
 }
 
 export interface FollowUpScript {
@@ -165,6 +170,59 @@ export interface FollowUpPlaybook {
   updated_at: string;
 }
 
+export type FollowUpResult = "no_answer" | "responded" | "interested" | "meeting_scheduled" | "no_interest";
+
+export interface FollowUpCadenceStage {
+  id: string;
+  cadence_id: string;
+  stage_number: number;
+  delay_min_hours: number;
+  delay_max_hours: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FollowUpCadence {
+  id: string;
+  company_id: string;
+  name: string;
+  service_interest: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+  follow_up_cadence_stages?: FollowUpCadenceStage[];
+}
+
+export interface FollowUpStageSchedule {
+  id: string;
+  cycle_id: string;
+  lead_id: string;
+  company_id: string;
+  stage_number: number;
+  window_start_at: string;
+  deadline_at: string;
+  status: "pending" | "completed" | "skipped" | "cancelled";
+  completed_record_id: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FollowUpNotification {
+  schedule_id: string;
+  company_id: string;
+  company_slug: string;
+  company_name: string;
+  lead_id: string;
+  lead_name: string;
+  responsible: string;
+  stage_number: number;
+  window_start_at: string;
+  deadline_at: string;
+  read_at: string | null;
+  urgency: "due_soon" | "overdue" | "scheduled";
+}
+
 export type FollowUpOutcome = "success" | "no_response";
 export type FollowUpCycleStatus = "active" | "completed";
 
@@ -185,6 +243,12 @@ export interface FollowUpLeadSummary {
   cycle_status: FollowUpCycleStatus | null;
   outcome: FollowUpOutcome | null;
   cycle_completed_at: string | null;
+  cycle_id: string | null;
+  next_schedule_id: string | null;
+  next_stage: number | null;
+  window_start_at: string | null;
+  deadline_at: string | null;
+  schedule_status: "pending" | "completed" | "skipped" | "cancelled" | null;
 }
 
 /** Métrica já combinada (definição + config da empresa + valor atual),

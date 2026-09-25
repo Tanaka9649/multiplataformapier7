@@ -40,6 +40,8 @@ export function CalendarItemModal({
   const supabase = createClient();
   const { showToast } = useToast();
 
+  const [title, setTitle] = useState("");
+  const [itemDate, setItemDate] = useState(date);
   const [type, setType] = useState<CalendarItemType>("post");
   const [status, setStatus] = useState<CalendarItemStatus>("pendente");
   const [description, setDescription] = useState("");
@@ -51,6 +53,8 @@ export function CalendarItemModal({
 
   useEffect(() => {
     if (open) {
+      setTitle(item?.title ?? "");
+      setItemDate(item?.date ?? date);
       setType(item?.type ?? "post");
       setStatus(item?.status ?? "pendente");
       setDescription(item?.description ?? "");
@@ -58,22 +62,28 @@ export function CalendarItemModal({
       setResponsible(item?.responsible ?? "");
       setConfirmDelete(false);
     }
-  }, [open, item]);
+  }, [open, item, date]);
 
   async function handleSave() {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
+      showToast("Informe o título do item.", "error");
+      return;
+    }
     setSaving(true);
     try {
       if (item) {
         const { error } = await supabase
           .from("calendar_items")
-          .update({ type, status, description, objective, responsible })
+          .update({ title: trimmedTitle, type, date: itemDate, status, description, objective, responsible })
           .eq("id", item.id);
         if (error) throw error;
         showToast("Item atualizado.", "success");
       } else {
         const { error } = await supabase.from("calendar_items").insert({
           company_id: companyId,
-          date,
+          date: itemDate,
+          title: trimmedTitle,
           type,
           status,
           description,
@@ -120,7 +130,7 @@ export function CalendarItemModal({
       <Modal
         open={open}
         onClose={onClose}
-        title={formatDateLong(date)}
+        title={formatDateLong(itemDate)}
         footer={
           <>
             {item && (
@@ -144,6 +154,20 @@ export function CalendarItemModal({
         )}
         <div className="space-y-4">
           <div>
+            <label className={LABEL_BASE}>Título <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={180}
+              required
+              autoFocus
+              className={INPUT_BASE}
+              placeholder="Ex.: Reel — Holding familiar"
+            />
+          </div>
+
+          <div>
             <label className={LABEL_BASE}>Tipo</label>
             <select
               value={type}
@@ -156,6 +180,17 @@ export function CalendarItemModal({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className={LABEL_BASE}>Data</label>
+            <input
+              type="date"
+              value={itemDate}
+              onChange={(event) => setItemDate(event.target.value)}
+              required
+              className={INPUT_BASE}
+            />
           </div>
 
           <div>

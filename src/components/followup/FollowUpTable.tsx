@@ -12,9 +12,11 @@ import {
   formatDaysOverdue,
   stageLabel,
 } from "@/lib/utils";
+import { formatFollowUpMoment, formatRelativeDeadline, isWeekend } from "@/lib/followUp";
 
 function isOverdue(nextContactAt: string | null) {
   if (!nextContactAt) return false;
+  if (isWeekend()) return false;
   return nextContactAt < new Date().toISOString().slice(0, 10);
 }
 
@@ -30,7 +32,7 @@ export function FollowUpTable({ rows, loading, companyName, canRegister, onSelec
   return (
     <div className={cx(CARD_SURFACE, "overflow-hidden p-0")}>
       <div className="scrollbar-thin overflow-x-auto">
-        <table className="w-full min-w-[1320px] border-collapse text-sm">
+        <table className="w-full min-w-[1520px] border-collapse text-sm">
           <thead className="bg-slate-50 dark:bg-zinc-950">
             <tr className="border-b border-slate-100 dark:border-zinc-800/70">
               {[
@@ -43,6 +45,8 @@ export function FollowUpTable({ rows, loading, companyName, canRegister, onSelec
                 "Etapa atual",
                 "Último follow-up",
                 "Próximo follow-up",
+                "Janela programada",
+                "Prazo / status",
                 "Observação",
                 "Resultado",
                 "Ação",
@@ -80,6 +84,12 @@ export function FollowUpTable({ rows, loading, companyName, canRegister, onSelec
                     <span className={cx("rounded-full border px-2 py-0.5 text-xs font-medium", LEAD_STATUS_BADGE[row.status])}>
                       {LEAD_STATUS_LABELS[row.status]}
                     </span>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-600 dark:text-zinc-400">
+                    {row.window_start_at && row.deadline_at ? `${formatFollowUpMoment(row.window_start_at)} → ${formatFollowUpMoment(row.deadline_at)}` : "—"}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-2">
+                    {row.deadline_at ? <span className={cx("rounded-full border px-2 py-0.5 text-xs font-medium", formatRelativeDeadline(row.deadline_at).startsWith("Atrasado") ? FOLLOW_UP_OVERDUE_BADGE : "border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-900/50 dark:bg-brand-950/20 dark:text-brand-300")}>{formatRelativeDeadline(row.deadline_at)}</span> : row.cycle_status === "completed" ? <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300">Concluído</span> : "—"}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2 text-slate-600 dark:text-zinc-400">
                     {row.current_stage ? stageLabel(row.current_stage) : "—"}

@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { BookOpen, Search, Settings2, X } from "lucide-react";
+import { BarChart3, BookOpen, Search, Settings2, X } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/Toast";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -12,8 +13,11 @@ import { FollowUpTable } from "@/components/followup/FollowUpTable";
 import { FollowUpLeadPanel } from "@/components/followup/FollowUpLeadPanel";
 import { FollowUpScriptsConfig } from "@/components/followup/FollowUpScriptsConfig";
 import { FollowUpPlaybookPanel } from "@/components/followup/FollowUpPlaybookPanel";
+import { FollowUpCadenceConfig } from "@/components/followup/FollowUpCadenceConfig";
+import { FollowUpAnalytics } from "@/components/followup/FollowUpAnalytics";
+import { isWeekend } from "@/lib/followUp";
 import type { FollowUpLeadSummary, FollowUpPlaybook, FollowUpScript } from "@/types/database";
-import { BUTTON_SECONDARY, INPUT_BASE, cx, escapePostgrestValue } from "@/lib/utils";
+import { BUTTON_SECONDARY, INPUT_BASE, SELECTED_CONTROL, UNSELECTED_CONTROL, cx, escapePostgrestValue } from "@/lib/utils";
 
 type FilterMode = "active" | "today" | "overdue" | "next7" | "noNextContact" | "completed";
 
@@ -50,6 +54,7 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
   const supabase = createClient();
   const { showToast } = useToast();
   const { can, isOwner } = usePermissions();
+  const searchParams = useSearchParams();
 
   const canView = isOwner || can(companyId, "follow_up", "view");
   const canRegister = isOwner || can(companyId, "follow_up", "register");
@@ -73,6 +78,8 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
   const [selectedLead, setSelectedLead] = useState<FollowUpLeadSummary | null>(null);
   const [scriptsConfigOpen, setScriptsConfigOpen] = useState(false);
   const [playbookOpen, setPlaybookOpen] = useState(false);
+  const [cadenceConfigOpen, setCadenceConfigOpen] = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchInput), 350);
@@ -117,7 +124,7 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
         const nc = (r as { next_contact_at: string | null }).next_contact_at;
         if (!nc) continue;
         if (nc === today) todayCount++;
-        else if (nc < today) overdueCount++;
+        else if (nc < today && !isWeekend()) overdueCount++;
         else if (nc <= in7) next7Count++;
       }
 
@@ -156,7 +163,9 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
             query = query.eq("status", "follow_up").eq("next_contact_at", todayISO());
             break;
           case "overdue":
-            query = query.eq("status", "follow_up").lt("next_contact_at", todayISO());
+            query = isWeekend()
+              ? query.eq("status", "follow_up").gt("next_contact_at", todayISO()).lt("next_contact_at", todayISO())
+              : query.eq("status", "follow_up").lt("next_contact_at", todayISO());
             break;
           case "next7":
             query = query.eq("status", "follow_up").gt("next_contact_at", todayISO()).lte("next_contact_at", daysFromNowISO(7));
@@ -188,6 +197,13 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    const leadId = searchParams.get("lead");
+    if (!leadId || loading) return;
+    const match = rows.find((row) => row.lead_id === leadId);
+    if (match) setSelectedLead(match);
+  }, [loading, rows, searchParams]);
 
   useEffect(() => {
     loadScripts();
@@ -232,15 +248,25 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
         title="Follow-up"
         action={
           <div className="flex flex-wrap gap-2">
+            <button onClick={() => setAnalyticsOpen(true)} className={BUTTON_SECONDARY}>
+              <BarChart3 className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
+              Análises
+            </button>
             <button onClick={() => setPlaybookOpen(true)} className={BUTTON_SECONDARY}>
               <BookOpen className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
               Ver sequência de Follow-up
             </button>
             {canEdit && (
-              <button onClick={() => setScriptsConfigOpen(true)} className={BUTTON_SECONDARY}>
-                <Settings2 className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
-                Configurar scripts
-              </button>
+              <>
+                <button onClick={() => setCadenceConfigOpen(true)} className={BUTTON_SECONDARY}>
+                  <Settings2 className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
+                  Configurar cadência
+                </button>
+                <button onClick={() => setScriptsConfigOpen(true)} className={BUTTON_SECONDARY}>
+                  <Settings2 className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
+                  Configurar scripts
+                </button>
+              </>
             )}
           </div>
         }
@@ -284,8 +310,8 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
               className={cx(
                 "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
                 filterMode === opt.key
-                  ? "border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-950/30 dark:text-brand-300"
-                  : "border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  ? SELECTED_CONTROL
+                  : UNSELECTED_CONTROL
               )}
             >
               {opt.label}
@@ -392,6 +418,13 @@ export function FollowUpSection({ companyId, companyName }: { companyId: string;
         canEdit={canEdit}
         onChanged={loadPlaybooks}
       />
+      <FollowUpCadenceConfig
+        open={cadenceConfigOpen}
+        onClose={() => setCadenceConfigOpen(false)}
+        companyId={companyId}
+        onSaved={() => { loadSettings(); refreshAll(); }}
+      />
+      <FollowUpAnalytics open={analyticsOpen} onClose={() => setAnalyticsOpen(false)} companyId={companyId} />
     </section>
   );
 }

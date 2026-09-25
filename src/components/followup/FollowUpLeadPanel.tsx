@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Copy, Pencil, Trash2 } from "lucide-react";
+import { Check, Copy, Pencil, Printer, Trash2 } from "lucide-react";
 import { Modal } from "@/components/Modal";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useToast } from "@/components/Toast";
 import { createClient } from "@/lib/supabase/client";
-import type { FollowUpActionType, FollowUpLeadSummary, FollowUpOutcome, FollowUpRecord, FollowUpScript } from "@/types/database";
+import type { FollowUpActionType, FollowUpLeadSummary, FollowUpOutcome, FollowUpRecord, FollowUpResult, FollowUpScript, FollowUpStageSchedule } from "@/types/database";
+import { FOLLOW_UP_RESULT_LABELS, formatFollowUpMoment, formatRelativeDeadline } from "@/lib/followUp";
 import {
   BUTTON_PRIMARY,
   BUTTON_DANGER,
+  BUTTON_GHOST,
   BUTTON_SECONDARY,
   FOLLOW_UP_ACTION_TYPE_LABELS,
   INPUT_BASE,
@@ -56,6 +58,7 @@ export function FollowUpLeadPanel({
   const { showToast } = useToast();
 
   const [records, setRecords] = useState<FollowUpRecord[]>([]);
+  const [schedules, setSchedules] = useState<FollowUpStageSchedule[]>([]);
   const [loadingRecords, setLoadingRecords] = useState(false);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -71,20 +74,25 @@ export function FollowUpLeadPanel({
   const [notes, setNotes] = useState("");
   const [requiresNext, setRequiresNext] = useState(true);
   const [nextContactAt, setNextContactAt] = useState("");
+  const [result, setResult] = useState<FollowUpResult>("no_answer");
   const [closeOutcome, setCloseOutcome] = useState<FollowUpOutcome | null>(null);
   const [closing, setClosing] = useState(false);
+  const [rescheduleId, setRescheduleId] = useState<string | null>(null);
+  const [rescheduleStart, setRescheduleStart] = useState("");
+  const [rescheduleDeadline, setRescheduleDeadline] = useState("");
+  const [rescheduleReason, setRescheduleReason] = useState("");
 
   async function loadRecords(leadId: string) {
     setLoadingRecords(true);
     try {
-      const { data, error } = await supabase
-        .from("follow_up_records")
-        .select("*")
-        .eq("lead_id", leadId)
-        .order("completed_at", { ascending: true })
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      setRecords((data ?? []) as FollowUpRecord[]);
+      const [recordsResult, schedulesResult] = await Promise.all([
+        supabase.from("follow_up_records").select("*").eq("lead_id", leadId).order("completed_at", { ascending: true }).order("created_at", { ascending: true }),
+        supabase.from("follow_up_stage_schedules").select("*").eq("lead_id", leadId).order("stage_number", { ascending: true }),
+      ]);
+      if (recordsResult.error) throw recordsResult.error;
+      if (schedulesResult.error) throw schedulesResult.error;
+      setRecords((recordsResult.data ?? []) as FollowUpRecord[]);
+      setSchedules((schedulesResult.data ?? []) as FollowUpStageSchedule[]);
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Não foi possível carregar o histórico.", "error");
     } finally {
@@ -102,10 +110,11 @@ export function FollowUpLeadPanel({
       setNotes("");
       setRequiresNext(true);
       setNextContactAt("");
+      setResult("no_answer");
       setCopied(false);
       setCloseOutcome(null);
       setEditingRecordId(null);
-      setStage(lead.current_stage && lead.current_stage <= maxStage ? lead.current_stage : 1);
+      setStage(lead.next_stage ?? (lead.current_stage && lead.current_stage <= maxStage ? lead.current_stage : 1));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, lead?.lead_id]);
@@ -128,10 +137,6 @@ export function FollowUpLeadPanel({
 
   async function handleRegister() {
     if (!lead) return;
-    if (requiresNext && !nextContactAt) {
-      showToast("Informe a data do próximo contato.", "error");
-      return;
-    }
     setSaving(true);
     try {
       const payload = {
@@ -146,9 +151,20 @@ export function FollowUpLeadPanel({
         requires_next_contact: requiresNext,
         next_contact_at: requiresNext ? nextContactAt : null,
       };
+      const schedule = schedules.find((item) => item.stage_number === stage && item.status === "pending");
       const { error: writeError } = editingRecordId
-        ? await supabase.from("follow_up_records").update(payload).eq("id", editingRecordId)
-        : await supabase.from("follow_up_records").insert(payload);
+        ? await supabase.from("follow_up_records").update({ ...payload, result }).eq("id", editingRecordId)
+        : schedule
+          ? await supabase.rpc("complete_follow_up_stage", {
+              p_schedule_id: schedule.id,
+              p_result: result,
+              p_action_type: actionType,
+              p_completed_at: completedAt,
+              p_completed_time: completedTime || null,
+              p_responsible: responsible,
+              p_notes: notes,
+            })
+          : { error: new Error("Nenhuma etapa pendente foi encontrada para este ciclo.") };
       if (writeError) throw writeError;
 
       // Item 23: alterações de Responsável feitas no Follow-up refletem no
@@ -201,6 +217,7 @@ export function FollowUpLeadPanel({
     setNotes(record.notes);
     setRequiresNext(record.requires_next_contact);
     setNextContactAt(record.next_contact_at ?? "");
+    setResult(record.result ?? "no_answer");
   }
 
   async function handleClose() {
@@ -226,6 +243,36 @@ export function FollowUpLeadPanel({
     }
   }
 
+  function beginReschedule(schedule: FollowUpStageSchedule) {
+    setRescheduleId(schedule.id);
+    setRescheduleStart(schedule.window_start_at.slice(0, 16));
+    setRescheduleDeadline(schedule.deadline_at.slice(0, 16));
+    setRescheduleReason("");
+  }
+
+  async function handleReschedule() {
+    if (!lead || !rescheduleId || !rescheduleStart || !rescheduleDeadline) return;
+    const leadId = lead.lead_id;
+    setSaving(true);
+    try {
+      const { error } = await supabase.rpc("reschedule_follow_up_stage", {
+        p_schedule_id: rescheduleId,
+        p_window_start_at: new Date(rescheduleStart).toISOString(),
+        p_deadline_at: new Date(rescheduleDeadline).toISOString(),
+        p_reason: rescheduleReason,
+      });
+      if (error) throw error;
+      showToast("Prazo alterado e registrado no histórico.", "success");
+      setRescheduleId(null);
+      await loadRecords(leadId);
+      onChanged();
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Não foi possível alterar o prazo.", "error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <Modal open={open} onClose={onClose} title={lead.name} size="lg">
       <div className="space-y-5">
@@ -235,6 +282,9 @@ export function FollowUpLeadPanel({
           <span className={cx("rounded-full border px-2 py-0.5 font-medium", LEAD_STATUS_BADGE[lead.status])}>
             {LEAD_STATUS_LABELS[lead.status]}
           </span>
+          <button type="button" onClick={() => window.print()} className="ml-auto flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1 font-medium hover:bg-slate-50 dark:border-zinc-700 dark:hover:bg-zinc-800">
+            <Printer className="h-3.5 w-3.5" /> Imprimir relatório
+          </button>
         </div>
 
         {lead.outcome && (
@@ -277,13 +327,21 @@ export function FollowUpLeadPanel({
               <div>
                 <label className={LABEL_BASE}>Etapa</label>
                 <select value={stage} onChange={(e) => setStage(Number(e.target.value))} className={INPUT_BASE}>
-                  {Array.from({ length: maxStage }, (_, i) => i + 1).map((n) => (
+                  {(editingRecordId
+                    ? Array.from({ length: maxStage }, (_, i) => i + 1)
+                    : schedules.filter((schedule) => schedule.status === "pending").map((schedule) => schedule.stage_number)
+                  ).map((n) => (
                     <option key={n} value={n}>
                       {stageLabel(n)}
                     </option>
                   ))}
                 </select>
-                {stage === maxStage && (
+                {!editingRecordId && schedules.find((schedule) => schedule.stage_number === stage) && (
+                  <p className="mt-1.5 text-xs text-slate-500 dark:text-zinc-400">
+                    Janela: {formatFollowUpMoment(schedules.find((schedule) => schedule.stage_number === stage)!.window_start_at)} até {formatFollowUpMoment(schedules.find((schedule) => schedule.stage_number === stage)!.deadline_at)} · {formatRelativeDeadline(schedules.find((schedule) => schedule.stage_number === stage)!.deadline_at)}
+                  </p>
+                )}
+                {stage === (schedules.length ? Math.max(...schedules.map((schedule) => schedule.stage_number)) : maxStage) && (
                   <p className="mt-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
                     Esta é a última etapa configurada.
                   </p>
@@ -302,6 +360,16 @@ export function FollowUpLeadPanel({
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className={LABEL_BASE}>Resultado</label>
+                <select value={result} onChange={(e) => setResult(e.target.value as FollowUpResult)} className={INPUT_BASE}>
+                  {(Object.keys(FOLLOW_UP_RESULT_LABELS) as FollowUpResult[]).map((value) => (
+                    <option key={value} value={value}>{FOLLOW_UP_RESULT_LABELS[value]}</option>
+                  ))}
+                </select>
+                {result === "meeting_scheduled" && <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">Encerra o ciclo com sucesso e muda o lead para Reunião marcada.</p>}
+                {result === "no_answer" && stage === (schedules.length ? Math.max(...schedules.map((schedule) => schedule.stage_number)) : maxStage) && <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">Na etapa final, encerra o ciclo sem retorno e muda o lead para Abandonou.</p>}
               </div>
               <div>
                 <label className={LABEL_BASE}>Data realizada</label>
@@ -340,36 +408,6 @@ export function FollowUpLeadPanel({
                   className={cx(INPUT_BASE, "resize-none")}
                 />
               </div>
-              <div className="sm:col-span-2">
-                <label className={LABEL_BASE}>Precisa entrar em contato novamente?</label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setRequiresNext(true)}
-                    className={cx(BUTTON_SECONDARY, "flex-1", requiresNext && "border-brand-500 text-brand-700 dark:text-brand-300")}
-                  >
-                    Sim
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRequiresNext(false)}
-                    className={cx(BUTTON_SECONDARY, "flex-1", !requiresNext && "border-brand-500 text-brand-700 dark:text-brand-300")}
-                  >
-                    Não
-                  </button>
-                </div>
-              </div>
-              {requiresNext && (
-                <div className="sm:col-span-2">
-                  <label className={LABEL_BASE}>Data do próximo contato</label>
-                  <input
-                    type="date"
-                    value={nextContactAt}
-                    onChange={(e) => setNextContactAt(e.target.value)}
-                    className={INPUT_BASE}
-                  />
-                </div>
-              )}
             </div>
             <div className="mt-4 flex justify-end gap-2">
               {editingRecordId && (
@@ -402,6 +440,28 @@ export function FollowUpLeadPanel({
         )}
 
         <div>
+          {schedules.length > 0 && (
+            <div className="mb-5">
+              <p className="mb-2 text-sm font-semibold text-slate-800 dark:text-zinc-100">Agenda do ciclo</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {schedules.map((schedule) => (
+                  <div key={schedule.id} className="rounded-lg border border-slate-200 px-3 py-2 text-xs dark:border-zinc-800">
+                    <div className="flex items-center justify-between gap-2"><span className="font-semibold text-slate-700 dark:text-zinc-200">{stageLabel(schedule.stage_number)}</span><span className={cx("rounded-full px-2 py-0.5 font-medium", schedule.status === "pending" ? "bg-brand-50 text-brand-700 dark:bg-brand-950/30 dark:text-brand-300" : schedule.status === "completed" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300" : "bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400")}>{schedule.status === "pending" ? "Agendado" : schedule.status === "completed" ? "Concluído" : schedule.status === "skipped" ? "Pulado" : "Cancelado"}</span></div>
+                    <p className="mt-1 text-slate-500 dark:text-zinc-400">{formatFollowUpMoment(schedule.window_start_at)} → {formatFollowUpMoment(schedule.deadline_at)}</p>
+                    {schedule.status === "pending" && <div className="mt-1 flex items-center justify-between gap-2"><p className="font-medium text-brand-700 dark:text-brand-300">{formatRelativeDeadline(schedule.deadline_at)}</p>{canRegister && <button type="button" onClick={() => beginReschedule(schedule)} className={BUTTON_GHOST}>Adiar</button>}</div>}
+                  </div>
+                ))}
+              </div>
+              {rescheduleId && (
+                <div className="mt-3 grid gap-2 rounded-lg border border-brand-200 bg-brand-50/40 p-3 dark:border-brand-900/50 dark:bg-brand-950/20 sm:grid-cols-2">
+                  <div><label className={LABEL_BASE}>Nova abertura</label><input type="datetime-local" value={rescheduleStart} onChange={(event) => setRescheduleStart(event.target.value)} className={INPUT_BASE} /></div>
+                  <div><label className={LABEL_BASE}>Novo prazo</label><input type="datetime-local" value={rescheduleDeadline} onChange={(event) => setRescheduleDeadline(event.target.value)} className={INPUT_BASE} /></div>
+                  <div className="sm:col-span-2"><label className={LABEL_BASE}>Motivo</label><input value={rescheduleReason} onChange={(event) => setRescheduleReason(event.target.value)} className={INPUT_BASE} /></div>
+                  <div className="flex justify-end gap-2 sm:col-span-2"><button type="button" onClick={() => setRescheduleId(null)} className={BUTTON_SECONDARY}>Cancelar</button><button type="button" onClick={handleReschedule} className={BUTTON_PRIMARY}>Salvar adiamento</button></div>
+                </div>
+              )}
+            </div>
+          )}
           <p className="mb-2 text-sm font-semibold text-slate-800 dark:text-zinc-100">Histórico</p>
           {loadingRecords ? (
             <p className="text-xs text-slate-400 dark:text-zinc-500">Carregando...</p>
@@ -423,6 +483,7 @@ export function FollowUpLeadPanel({
                         {r.responsible && ` · ${r.responsible}`}
                       </p>
                       {r.notes && <p className="mt-0.5 text-sm text-slate-600 dark:text-zinc-400">{r.notes}</p>}
+                      {r.result && <p className="mt-0.5 text-xs font-medium text-brand-700 dark:text-brand-300">Resultado: {FOLLOW_UP_RESULT_LABELS[r.result]}</p>}
                       {r.requires_next_contact && r.next_contact_at && (
                         <p className="mt-0.5 text-xs text-slate-400 dark:text-zinc-500">
                           Próximo contato: {formatDatePtBR(r.next_contact_at)}
