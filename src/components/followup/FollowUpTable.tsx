@@ -85,12 +85,6 @@ export function FollowUpTable({ rows, loading, companyName, canRegister, onSelec
                       {LEAD_STATUS_LABELS[row.status]}
                     </span>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-600 dark:text-zinc-400">
-                    {row.window_start_at && row.deadline_at ? `${formatFollowUpMoment(row.window_start_at)} → ${formatFollowUpMoment(row.deadline_at)}` : "—"}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-2">
-                    {row.deadline_at ? <span className={cx("rounded-full border px-2 py-0.5 text-xs font-medium", formatRelativeDeadline(row.deadline_at).startsWith("Atrasado") ? FOLLOW_UP_OVERDUE_BADGE : "border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-900/50 dark:bg-brand-950/20 dark:text-brand-300")}>{formatRelativeDeadline(row.deadline_at)}</span> : row.cycle_status === "completed" ? <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300">Concluído</span> : "—"}
-                  </td>
                   <td className="whitespace-nowrap px-3 py-2 text-slate-600 dark:text-zinc-400">
                     {row.current_stage ? stageLabel(row.current_stage) : "—"}
                   </td>
@@ -110,6 +104,12 @@ export function FollowUpTable({ rows, loading, companyName, canRegister, onSelec
                     ) : (
                       <span className="text-slate-400 dark:text-zinc-500">—</span>
                     )}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-600 dark:text-zinc-400">
+                    {row.window_start_at && row.deadline_at ? `${formatFollowUpMoment(row.window_start_at)} → ${formatFollowUpMoment(row.deadline_at)}` : "—"}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-2">
+                    {row.deadline_at ? <span className={cx("rounded-full border px-2 py-0.5 text-xs font-medium", formatRelativeDeadline(row.deadline_at).startsWith("Atrasado") ? FOLLOW_UP_OVERDUE_BADGE : "border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-900/50 dark:bg-brand-950/20 dark:text-brand-300")}>{formatRelativeDeadline(row.deadline_at)}</span> : row.cycle_status === "completed" ? <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300">Concluído</span> : "—"}
                   </td>
                   <td className="max-w-[200px] px-3 py-2">
                     <div className="flex items-center gap-1.5 truncate text-slate-500 dark:text-zinc-400" title={row.last_notes ?? ""}>
