@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, ExternalLink, Eye, Heart, MessageCircle, Pencil, Share2, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { ContentThumbnail } from "@/components/social/ContentThumbnail";
+import { StatusBadge } from "@/components/StatusBadge";
 import { CONTENT_TYPE_LABELS } from "@/lib/socialMedia";
 import type { SocialTopContent } from "@/types/database";
 import { BUTTON_GHOST, CARD_SURFACE, cx, formatDatePtBR } from "@/lib/utils";
@@ -75,9 +76,9 @@ export function SocialContentCard({
 
       <div className="flex flex-1 flex-col p-4">
         <div className="mb-1 flex items-center justify-between gap-2">
-          <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700 dark:bg-brand-950/40 dark:text-brand-300">
+          <StatusBadge variant="primary" className="text-[11px]">
             {CONTENT_TYPE_LABELS[content.content_type]}
-          </span>
+          </StatusBadge>
           {content.published_at && (
             <span className="text-xs text-slate-400 dark:text-zinc-500">{formatDatePtBR(content.published_at)}</span>
           )}

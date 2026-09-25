@@ -53,7 +53,7 @@ export function Modal({ open, onClose, title, children, footer, size = "md" }: M
           <button
             onClick={onClose}
             aria-label="Fechar"
-            className="rounded-md p-1 text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-600 active:scale-90 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+            className="rounded-md p-1 text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-600 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 dark:focus-visible:ring-brand-500"
           >
             <X className="h-4 w-4" />
           </button>

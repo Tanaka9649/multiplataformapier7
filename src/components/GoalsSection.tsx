@@ -10,7 +10,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Skeleton } from "@/components/Skeleton";
 import { SectionHeader } from "@/components/SectionHeader";
 import type { CompanyGoal, MetricFormat } from "@/types/database";
-import { BUTTON_SECONDARY } from "@/lib/utils";
+import { BUTTON_PRIMARY } from "@/lib/utils";
 
 export interface GoalMetricOption {
   key: string;
@@ -140,7 +140,7 @@ export function GoalsSection({ companyId }: { companyId: string }) {
         subtitle={goals.length > 0 ? "Acompanhe o progresso dos principais objetivos." : undefined}
         action={
           goals.length > 0 && (
-            <button onClick={openCreate} className={BUTTON_SECONDARY}>
+            <button onClick={openCreate} className={BUTTON_PRIMARY}>
               <Plus className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
               Adicionar meta
             </button>
@@ -163,7 +163,7 @@ export function GoalsSection({ companyId }: { companyId: string }) {
               Acompanhe visualmente os principais objetivos desta empresa.
             </p>
           </div>
-          <button onClick={openCreate} className={BUTTON_SECONDARY}>
+          <button onClick={openCreate} className={BUTTON_PRIMARY}>
             <Plus className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
             Criar primeira meta
           </button>

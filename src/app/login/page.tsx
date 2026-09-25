@@ -27,11 +27,20 @@ export default function LoginPage() {
 
     try {
       if (mode === "signin") {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (signInError) throw signInError;
+
+        // Último acesso pertence ao evento real de autenticação, não ao render
+        // do Dashboard. A telemetria é best-effort e nunca bloqueia o acesso.
+        if (signInData.user) {
+          await supabase
+            .from("profiles")
+            .update({ last_login_at: new Date().toISOString() })
+            .eq("id", signInData.user.id);
+        }
         router.push("/dashboard");
         router.refresh();
       } else {

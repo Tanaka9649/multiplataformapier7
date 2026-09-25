@@ -104,19 +104,19 @@ export const PANEL_SURFACE =
   "border-slate-200/70 bg-white dark:border-zinc-800/70 dark:bg-zinc-950";
 
 export const BUTTON_PRIMARY =
-  "inline-flex items-center justify-center rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:bg-brand-800 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-brand-600 dark:hover:bg-brand-500";
+  "inline-flex items-center justify-center rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-150 hover:bg-brand-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-brand-500 dark:focus-visible:ring-offset-zinc-950";
 
 export const BUTTON_SECONDARY =
-  "inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-all duration-150 hover:bg-slate-50 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800";
+  "inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors duration-150 hover:bg-slate-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-500 dark:focus-visible:ring-offset-zinc-950";
 
 export const BUTTON_DANGER =
-  "inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:bg-red-700 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-red-600 dark:hover:bg-red-500";
+  "inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-150 hover:bg-red-700 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-red-600 dark:hover:bg-red-500 dark:focus-visible:ring-red-500 dark:focus-visible:ring-offset-zinc-950";
 
 export const BUTTON_GHOST_DANGER =
-  "inline-flex items-center justify-center rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-all duration-150 hover:bg-red-50 active:scale-[0.97] dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/40";
+  "inline-flex items-center justify-center rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors duration-150 hover:bg-red-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/40 dark:focus-visible:ring-red-500 dark:focus-visible:ring-offset-zinc-950";
 
 export const BUTTON_GHOST =
-  "inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition-all duration-150 hover:bg-slate-50 active:scale-[0.97] dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800";
+  "inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors duration-150 hover:bg-slate-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-500 dark:focus-visible:ring-offset-zinc-950";
 
 export const INPUT_BASE =
   "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-brand-400 dark:focus:ring-brand-900/40";
@@ -127,16 +127,16 @@ export const LABEL_BASE = "mb-1 block text-sm font-medium text-slate-700 dark:te
  * O fundo escuro é deliberadamente opaco para que o selecionado não pareça
  * branco ou desabilitado no tema grafite. */
 export const SELECTED_CONTROL =
-  "border-brand-300 bg-brand-50 text-brand-800 shadow-sm dark:border-sky-800/60 dark:bg-sky-950/55 dark:text-sky-100 dark:shadow-none";
+  "border-brand-300 bg-brand-50 text-brand-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-1 dark:border-sky-800/60 dark:bg-sky-950/55 dark:text-sky-100 dark:shadow-none dark:focus-visible:ring-brand-500 dark:focus-visible:ring-offset-zinc-950";
 
 export const UNSELECTED_CONTROL =
-  "border-slate-300 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200";
+  "border-slate-300 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 dark:focus-visible:ring-brand-500 dark:focus-visible:ring-offset-zinc-950";
 
 export const SELECTED_PILL =
-  "bg-brand-700 text-white ring-1 ring-inset ring-brand-700 dark:bg-sky-950/55 dark:text-sky-100 dark:ring-sky-800/60";
+  "bg-brand-700 text-white ring-1 ring-inset ring-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-1 dark:bg-sky-950/55 dark:text-sky-100 dark:ring-sky-800/60 dark:focus-visible:ring-brand-500 dark:focus-visible:ring-offset-zinc-950";
 
 export const UNSELECTED_PILL =
-  "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100";
+  "text-slate-500 hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus-visible:ring-brand-500";
 
 export const LEAD_ORIGIN_LABELS: Record<import("@/types/database").LeadOrigin, string> = {
   instagram: "Instagram",
@@ -151,19 +151,6 @@ export const LEAD_STATUS_LABELS: Record<import("@/types/database").LeadStatus, s
   follow_up: "Follow-up",
   reuniao_marcada: "Reunião marcada",
   contrato_fechado: "Contrato fechado",
-};
-
-export const LEAD_STATUS_BADGE: Record<import("@/types/database").LeadStatus, string> = {
-  abandonou:
-    "bg-rose-50 text-rose-700 border-rose-200/70 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900/40",
-  conversando:
-    "bg-sky-50 text-sky-700 border-sky-200/70 dark:bg-sky-950/20 dark:text-sky-400 dark:border-sky-900/40",
-  follow_up:
-    "bg-indigo-50 text-indigo-700 border-indigo-200/70 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-900/40",
-  reuniao_marcada:
-    "bg-violet-50 text-violet-700 border-violet-200/70 dark:bg-violet-950/20 dark:text-violet-400 dark:border-violet-900/40",
-  contrato_fechado:
-    "bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/40",
 };
 
 export const FOLLOW_UP_ACTION_TYPE_LABELS: Record<import("@/types/database").FollowUpActionType, string> = {

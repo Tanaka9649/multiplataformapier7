@@ -5,10 +5,10 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { ArrowDown, ArrowUp, ArrowUpDown, MoreVertical, NotebookText, Trash2 } from "lucide-react";
 import { StarRating } from "@/components/StarRating";
 import type { Lead, LeadOrigin, LeadStatus } from "@/types/database";
+import { BADGE_VARIANT_STYLES, LEAD_STATUS_VARIANTS } from "@/lib/uiVariants";
 import {
   CARD_SURFACE,
   LEAD_ORIGIN_LABELS,
-  LEAD_STATUS_BADGE,
   LEAD_STATUS_LABELS,
   cx,
 } from "@/lib/utils";
@@ -249,7 +249,8 @@ export function LeadsTable({
                     onChange={(e) => onFieldChange(lead.id, "status", e.target.value as LeadStatus)}
                     className={cx(
                       "cursor-pointer rounded-full border px-2 py-1 text-xs font-medium outline-none transition-colors",
-                      LEAD_STATUS_BADGE[lead.status]
+                      BADGE_VARIANT_STYLES[LEAD_STATUS_VARIANTS[lead.status]],
+                      "focus-visible:ring-2 focus-visible:ring-brand-400"
                     )}
                   >
                     {(Object.keys(LEAD_STATUS_LABELS) as LeadStatus[]).map((s) => (

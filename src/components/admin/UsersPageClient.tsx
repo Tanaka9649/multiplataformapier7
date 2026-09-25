@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Plus, Search } from "lucide-react";
 import type { UserStatus } from "@/types/database";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { StatusBadge as DesignStatusBadge } from "@/components/StatusBadge";
+import { RoleBadge } from "@/components/RoleBadge";
 import { CreateAccessModal } from "@/components/admin/CreateAccessModal";
 import { EmptyState } from "@/components/EmptyState";
 import { BUTTON_PRIMARY, CARD_SURFACE, INPUT_BASE, SELECTED_PILL, UNSELECTED_PILL, cx } from "@/lib/utils";
@@ -132,9 +134,9 @@ export function UsersPageClient({
             >
               {f.label}
               {f.key === "pending" && pendingCount > 0 && (
-                <span className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+                <DesignStatusBadge variant="warning" className="ml-1.5 px-1.5 text-[10px]">
                   {pendingCount}
-                </span>
+                </DesignStatusBadge>
               )}
             </button>
           ))}
@@ -176,21 +178,21 @@ export function UsersPageClient({
                   <td className="px-4 py-3 font-medium text-slate-800 dark:text-zinc-200">
                     {p.full_name ?? "—"}
                     {p.system_role === "owner" && (
-                      <span className="ml-1.5 rounded-full bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700 dark:bg-brand-950/50 dark:text-brand-300">
-                        OWNER
-                      </span>
+                      <span className="ml-1.5 inline-flex"><RoleBadge role="OWNER" compact /></span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-slate-500 dark:text-zinc-400">{p.email ?? "—"}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={p.status} />
                   </td>
-                  <td className="px-4 py-3 text-slate-500 dark:text-zinc-400">
-                    {p.system_role === "owner"
-                      ? "Acesso total"
-                      : p.permission_profile_id
-                        ? (profileNameById.get(p.permission_profile_id) ?? "—")
-                        : "—"}
+                  <td className="px-4 py-3">
+                    {p.system_role === "owner" ? (
+                      <RoleBadge role="Acesso total" />
+                    ) : p.permission_profile_id ? (
+                      <RoleBadge role={profileNameById.get(p.permission_profile_id) ?? "Sem perfil"} />
+                    ) : (
+                      <span className="text-slate-400 dark:text-zinc-500">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-slate-500 dark:text-zinc-400">
                     {p.system_role === "owner" ? "Todas" : (companiesByUser.get(p.id) ?? []).join(", ") || "—"}

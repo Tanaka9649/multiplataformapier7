@@ -6,6 +6,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import type { Profile, UserStatus } from "@/types/database";
 import { PERMISSION_MODULES } from "@/lib/permissions";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { RoleBadge } from "@/components/RoleBadge";
 import { PermissionMatrix } from "@/components/admin/PermissionMatrix";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useToast } from "@/components/Toast";
@@ -213,9 +214,7 @@ export function UserDetailClient({
               <h1 className="text-lg font-semibold text-slate-900 dark:text-zinc-50">{profile.full_name ?? "—"}</h1>
               <StatusBadge status={profile.status} />
               {isOwner && (
-                <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-700 dark:bg-brand-950/50 dark:text-brand-300">
-                  OWNER
-                </span>
+                <RoleBadge role="OWNER" compact />
               )}
             </div>
             <p className="mt-0.5 text-sm text-slate-500 dark:text-zinc-400">{profile.email}</p>

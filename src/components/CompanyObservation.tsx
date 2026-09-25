@@ -112,7 +112,7 @@ export function CompanyObservation({ companyId }: { companyId: string }) {
               Registre informações importantes sobre o desempenho deste período.
             </p>
           </div>
-          <button onClick={openEditor} className={BUTTON_SECONDARY}>
+          <button onClick={openEditor} className={BUTTON_PRIMARY}>
             <Plus className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
             Adicionar observação
           </button>

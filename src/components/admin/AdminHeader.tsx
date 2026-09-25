@@ -20,6 +20,7 @@ export function AdminHeader() {
         <div className="flex items-center gap-4">
           <Link
             href="/dashboard"
+            prefetch
             className="flex items-center gap-1.5 text-xs font-medium text-slate-500 transition-colors hover:text-slate-700 dark:text-zinc-500 dark:hover:text-zinc-300"
           >
             <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2} />

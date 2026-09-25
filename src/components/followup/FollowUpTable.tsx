@@ -3,9 +3,10 @@
 import { NotebookText, PhoneCall } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import type { FollowUpLeadSummary } from "@/types/database";
+import { LEAD_STATUS_VARIANTS } from "@/lib/uiVariants";
 import {
+  BUTTON_GHOST,
   CARD_SURFACE,
-  LEAD_STATUS_BADGE,
   LEAD_STATUS_LABELS,
   cx,
   formatDatePtBR,
@@ -81,9 +82,9 @@ export function FollowUpTable({ rows, loading, companyName, canRegister, onSelec
                     {row.responsible || "—"}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2">
-                    <span className={cx("rounded-full border px-2 py-0.5 text-xs font-medium", LEAD_STATUS_BADGE[row.status])}>
+                    <StatusBadge variant={LEAD_STATUS_VARIANTS[row.status]}>
                       {LEAD_STATUS_LABELS[row.status]}
-                    </span>
+                    </StatusBadge>
                   </td>
                   <td className="whitespace-nowrap px-3 py-2 text-slate-600 dark:text-zinc-400">
                     {row.current_stage ? stageLabel(row.current_stage) : "—"}
@@ -140,7 +141,7 @@ export function FollowUpTable({ rows, loading, companyName, canRegister, onSelec
                         e.stopPropagation();
                         onSelect(row);
                       }}
-                      className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                      className={cx(BUTTON_GHOST, "gap-1.5 px-2.5")}
                     >
                       <PhoneCall className="h-3.5 w-3.5" />
                       {canRegister && row.status === "follow_up" && row.cycle_status !== "completed" ? "Registrar follow-up" : "Ver histórico"}

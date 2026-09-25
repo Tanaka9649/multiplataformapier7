@@ -25,7 +25,7 @@ export function ThemeToggle() {
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
       title={isDark ? "Modo claro" : "Modo escuro"}
-      className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg text-slate-500 transition-all duration-150 hover:bg-slate-100 active:scale-90 dark:text-zinc-400 dark:hover:bg-zinc-900"
+      className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg text-slate-500 transition-all duration-150 hover:bg-slate-100 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:focus-visible:ring-brand-500"
     >
       <Sun
         className={cx(

@@ -140,11 +140,11 @@ export function MarketingCalendar({ company }: { company: Company }) {
 
   const monthNavigation = (
     <div className="flex items-center gap-2">
-      <button type="button" onClick={() => setCursor(new Date(year, month - 1, 1))} aria-label="Mês anterior" className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 active:scale-90 dark:text-zinc-400 dark:hover:bg-zinc-800">
+      <button type="button" onClick={() => setCursor(new Date(year, month - 1, 1))} aria-label="Mês anterior" className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-500">
         <ChevronLeft className="h-4 w-4" />
       </button>
       <span className="min-w-[136px] text-center text-sm font-medium text-slate-700 dark:text-zinc-300">{MONTH_LABELS[month]} de {year}</span>
-      <button type="button" onClick={() => setCursor(new Date(year, month + 1, 1))} aria-label="Próximo mês" className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 active:scale-90 dark:text-zinc-400 dark:hover:bg-zinc-800">
+      <button type="button" onClick={() => setCursor(new Date(year, month + 1, 1))} aria-label="Próximo mês" className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-500">
         <ChevronRight className="h-4 w-4" />
       </button>
     </div>

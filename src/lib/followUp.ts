@@ -1,5 +1,5 @@
 import type { FollowUpResult } from "@/types/database";
-import type { StatusBadgeVariant } from "@/components/StatusBadge";
+import type { BadgeVariant } from "@/lib/uiVariants";
 
 export const FOLLOW_UP_RESULT_LABELS: Record<FollowUpResult, string> = {
   no_answer: "Não respondeu",
@@ -42,7 +42,7 @@ export function formatRelativeDeadline(iso: string | null) {
 }
 
 /** Classifica somente a apresentação do prazo; não altera a cadência nem o cálculo exibido. */
-export function getDeadlineBadgeVariant(iso: string | null): StatusBadgeVariant {
+export function getDeadlineBadgeVariant(iso: string | null): BadgeVariant {
   if (!iso || isWeekend()) return "neutral";
   const remainingMs = new Date(iso).getTime() - Date.now();
   if (remainingMs < 0) return "danger";

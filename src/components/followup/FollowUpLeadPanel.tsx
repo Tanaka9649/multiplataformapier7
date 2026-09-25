@@ -9,6 +9,7 @@ import { useToast } from "@/components/Toast";
 import { createClient } from "@/lib/supabase/client";
 import type { FollowUpActionType, FollowUpLeadSummary, FollowUpOutcome, FollowUpRecord, FollowUpResult, FollowUpScript, FollowUpStageSchedule } from "@/types/database";
 import { FOLLOW_UP_RESULT_LABELS, formatFollowUpMoment, formatRelativeDeadline, getDeadlineBadgeVariant } from "@/lib/followUp";
+import { LEAD_STATUS_VARIANTS } from "@/lib/uiVariants";
 import {
   BUTTON_PRIMARY,
   BUTTON_DANGER,
@@ -17,7 +18,6 @@ import {
   FOLLOW_UP_ACTION_TYPE_LABELS,
   INPUT_BASE,
   LABEL_BASE,
-  LEAD_STATUS_BADGE,
   LEAD_STATUS_LABELS,
   cx,
   formatDatePtBR,
@@ -293,9 +293,9 @@ export function FollowUpLeadPanel({
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-zinc-400">
           <span>{lead.phone || "Sem telefone"}</span>
           {lead.service_interest && <span>{lead.service_interest}</span>}
-          <span className={cx("rounded-full border px-2 py-0.5 font-medium", LEAD_STATUS_BADGE[lead.status])}>
+          <StatusBadge variant={LEAD_STATUS_VARIANTS[lead.status]}>
             {LEAD_STATUS_LABELS[lead.status]}
-          </span>
+          </StatusBadge>
           <button type="button" onClick={() => window.print()} className="ml-auto flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1 font-medium hover:bg-slate-50 dark:border-zinc-700 dark:hover:bg-zinc-800">
             <Printer className="h-3.5 w-3.5" /> Imprimir relatório
           </button>
