@@ -17,7 +17,7 @@ export type BadgeVariant =
  */
 export const BADGE_VARIANT_STYLES: Record<BadgeVariant, string> = {
   primary:
-    "border-brand-200/80 bg-brand-50 text-brand-800 dark:border-brand-800/60 dark:bg-brand-950/60 dark:text-brand-200",
+    "border-brand-200/80 bg-brand-50 text-brand-800 dark:border-brand-800/60 dark:bg-brand-900/60 dark:text-brand-200",
   info:
     "border-sky-200/80 bg-sky-50 text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/55 dark:text-sky-200",
   normal:
@@ -42,4 +42,3 @@ export const LEAD_STATUS_VARIANTS: Record<LeadStatus, BadgeVariant> = {
   reuniao_marcada: "primary",
   contrato_fechado: "success",
 };
-

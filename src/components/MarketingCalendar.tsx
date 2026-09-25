@@ -191,7 +191,7 @@ export function MarketingCalendar({ company }: { company: Company }) {
                         <button
                           type="button"
                           onClick={(event) => { event.stopPropagation(); setExpandedDate(cell.date); }}
-                          className="w-full rounded-md px-2 py-1 text-left text-[11px] font-semibold text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-brand-950/30"
+                          className="w-full rounded-md px-2 py-1 text-left text-[11px] font-semibold text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-brand-900/30"
                         >
                           +{dayItems.length - 3} {dayItems.length === 4 ? "item" : "itens"}
                         </button>
@@ -217,7 +217,7 @@ export function MarketingCalendar({ company }: { company: Company }) {
           <article key={date} className={cx(CARD_SURFACE, "p-3")}>
             <div className="mb-2 flex items-center justify-between border-b border-slate-100 pb-2 dark:border-zinc-800">
               <h3 className="text-sm font-semibold capitalize text-slate-800 dark:text-zinc-100">{formatDateLong(date)}</h3>
-              <button type="button" onClick={() => openCreate(date)} aria-label={`Adicionar item em ${formatDateLong(date)}`} className="rounded-lg p-1.5 text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-brand-950/30">
+              <button type="button" onClick={() => openCreate(date)} aria-label={`Adicionar item em ${formatDateLong(date)}`} className="rounded-lg p-1.5 text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-brand-900/30">
                 <Plus className="h-4 w-4" />
               </button>
             </div>

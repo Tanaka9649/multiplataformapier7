@@ -85,7 +85,7 @@ export function CompanyObservation({ companyId }: { companyId: string }) {
       {loading ? (
         <Skeleton className="h-20" />
       ) : observation ? (
-        <div className="animate-fade-in-up rounded-2xl border border-slate-200/70 bg-brand-50/30 p-5 dark:border-zinc-800/70 dark:bg-brand-950/10">
+        <div className="animate-fade-in-up rounded-2xl border border-slate-200/70 bg-brand-50/30 p-5 dark:border-zinc-800/70 dark:bg-brand-900/10">
           <div className="mb-2 flex items-start justify-between gap-3">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-brand-600 dark:bg-zinc-900 dark:text-brand-400">
               <StickyNote className="h-3.5 w-3.5" strokeWidth={2} />

@@ -313,7 +313,7 @@ export function FollowUpLeadPanel({
         )}
 
         {script && (
-          <div className="rounded-xl border border-brand-200/70 bg-brand-50/60 p-3.5 dark:border-brand-900/40 dark:bg-brand-950/20">
+          <div className="rounded-xl border border-brand-200/70 bg-brand-50/60 p-3.5 dark:border-brand-900/40 dark:bg-brand-900/20">
             <div className="mb-1.5 flex items-center justify-between">
               <p className="text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">
                 Script recomendado — {stageLabel(stage)}
@@ -467,7 +467,7 @@ export function FollowUpLeadPanel({
                 ))}
               </div>
               {rescheduleId && (
-                <div className="mt-3 grid gap-2 rounded-lg border border-brand-200 bg-brand-50/40 p-3 dark:border-brand-900/50 dark:bg-brand-950/20 sm:grid-cols-2">
+                <div className="mt-3 grid gap-2 rounded-lg border border-brand-200 bg-brand-50/40 p-3 dark:border-brand-900/50 dark:bg-brand-900/20 sm:grid-cols-2">
                   <div><label className={LABEL_BASE}>Nova abertura</label><input type="datetime-local" value={rescheduleStart} onChange={(event) => setRescheduleStart(event.target.value)} className={INPUT_BASE} /></div>
                   <div><label className={LABEL_BASE}>Novo prazo</label><input type="datetime-local" value={rescheduleDeadline} onChange={(event) => setRescheduleDeadline(event.target.value)} className={INPUT_BASE} /></div>
                   <div className="sm:col-span-2"><label className={LABEL_BASE}>Motivo</label><input value={rescheduleReason} onChange={(event) => setRescheduleReason(event.target.value)} className={INPUT_BASE} /></div>

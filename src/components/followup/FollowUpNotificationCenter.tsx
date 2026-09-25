@@ -71,11 +71,11 @@ export function FollowUpNotificationCenter() {
         <div className="absolute right-0 top-11 z-40 w-[min(380px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-zinc-800">
             <div><p className="text-sm font-semibold text-slate-900 dark:text-zinc-50">Follow-ups próximos</p><p className="text-[11px] text-slate-400">Atualização automática a cada 45 segundos</p></div>
-            {unread > 0 && <button type="button" onClick={markAllRead} title="Marcar todas como lidas" className="rounded-md p-1.5 text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-brand-950/30"><CheckCheck className="h-4 w-4" /></button>}
+            {unread > 0 && <button type="button" onClick={markAllRead} title="Marcar todas como lidas" className="rounded-md p-1.5 text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-brand-900/30"><CheckCheck className="h-4 w-4" /></button>}
           </div>
           <div className="max-h-[420px] overflow-y-auto">
             {notifications.length === 0 ? <p className="px-4 py-8 text-center text-sm text-slate-400 dark:text-zinc-500">Nenhum alerta nas próximas 2 horas.</p> : notifications.map((notification) => (
-              <button key={notification.schedule_id} type="button" onClick={() => openLead(notification)} className={cx("block w-full border-b border-slate-100 px-4 py-3 text-left hover:bg-slate-50 dark:border-zinc-800 dark:hover:bg-zinc-800/60", !notification.read_at && "bg-brand-50/50 dark:bg-brand-950/20")}>
+              <button key={notification.schedule_id} type="button" onClick={() => openLead(notification)} className={cx("block w-full border-b border-slate-100 px-4 py-3 text-left hover:bg-slate-50 dark:border-zinc-800 dark:hover:bg-zinc-800/60", !notification.read_at && "bg-brand-50/50 dark:bg-brand-900/20")}>
                 <div className="flex items-start justify-between gap-3"><span className="truncate text-sm font-semibold text-slate-800 dark:text-zinc-100">{notification.lead_name}</span><StatusBadge variant={getDeadlineBadgeVariant(notification.deadline_at)} className="shrink-0 text-[11px]">{formatRelativeDeadline(notification.deadline_at)}</StatusBadge></div>
                 <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">{notification.company_name} · {notification.stage_number}º follow-up</p>
                 <p className="mt-0.5 text-[11px] text-slate-400 dark:text-zinc-500">Prazo: {formatFollowUpMoment(notification.deadline_at)}</p>
